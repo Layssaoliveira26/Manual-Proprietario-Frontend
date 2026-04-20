@@ -1,0 +1,17 @@
+#Node
+FROM node:20-alpine
+
+#Caminho para execução de comandos
+WORKDIR /app
+
+COPY package*.json ./
+#Garantir que o ambiente seja identico ao presente em package-lock.json
+RUN npm ci
+
+COPY . . 
+
+EXPOSE 5173
+
+# --host expõe o servidor do Vite para fora do conteiner, podendo ser executado
+# no navegador
+CMD ["npm", "run", "dev", "--", "--host"]
