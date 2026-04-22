@@ -1,9 +1,49 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600&display=swap');
 
 :root {
     --cor-fundo: #f8f8f0;
+    --laranja-principal: #C15A3E;
 }
 
 body {
     background-color: var(--cor-fundo);
+}
+
+h3 {
+    font-family: "Manrope", sans-serif;
+
+}
+
+.btn-laranja {
+    background-color: var(--laranja-principal);
+}
+
+.btn-branco {
+    background-color: #f8f8f0;
+    border-color: rgba(0, 0, 0, 0.123);
+    border-width: 2px;
+    box-shadow: 5px 5px 5px rgba(112, 111, 111, 0.185);
+}
+
+input {
+    width: 100%;
+    max-width: 450px;
+    margin-bottom: 15px;
+    padding: 14px 16px;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+}
+
+.btn-telas-iniciais {
+    width: 100%;
+    max-width: 450px;
+    padding: 12px 16px;
+    background-color: var(--laranja-principal);
+    color: white;
+    border-radius: 6px;
+    font-weight: 500;
 }
