@@ -1,7 +1,7 @@
 function Login() {
 
     return (
-        <div className="flex h-screen w-full items-center justify-center">
+        <div className="flex min-h-screen w-full items-center justify-center py-6">
             <div class="form-login pb-5 px-10 border-solid rounded-xl shadow-xl">
                 <div class="flex justify-end">
                     <img src="src\assets\svg\detalhe-form.svg" alt="" />
@@ -13,7 +13,7 @@ function Login() {
                 </div>
                 
                 
-                <div class="escolha-role flex bg-[var(--cor-fundo)] p-1 justify-center rounded-sm">
+                <div class="escolha-role flex bg-[var(--cor-form)] p-1 justify-center rounded-sm">
                     <button className="btn-laranja py-2 px-8 rounded-sm font-medium text-[var(--cor-fundo)]">Proprietário</button>
                     <button className="btn-branco py-2 px-8 rounded-sm ml-0.5 font-medium text-[var(--laranja-principal)] font ">Construtor</button>
                 </div>

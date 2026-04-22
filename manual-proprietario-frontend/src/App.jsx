@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import TelaLogin from "./pages/Login";
+import CadastroProprietario from "./pages/CadastroProprietario"
 import './App.css'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -21,6 +22,11 @@ const [user, setUser] = useState(null);
         <Route
           path="/login"
           element={<TelaLogin/>}
+        />
+
+        <Route
+          path="/cadastro-proprietario"
+          element={<CadastroProprietario/>}
         />
 
       </Routes>
