@@ -8,14 +8,14 @@ function CadastroProprietario() {
 
     const [ nome, setNome ] = useState("");
     const [ email, setEmail ] = useState("");
-    const [ crea, setCrea ] = useState("");
+    const [ cpf, setCpf ] = useState("");
     const [ senha, setSenha ] = useState("");
     const [ confirmSenha, setConfirmSenha ] = useState("");
     const navigate = useNavigate();
 
     const cadastrarProp = async () => {
         try {
-            const data = await cadastrarProprietario({ nome, email, crea, senha, confirmSenha });
+            const data = await cadastrarProprietario({ nome, email, cpf, senha, confirmSenha });
 
             navigate("/login");
         } catch(error) {
@@ -44,8 +44,8 @@ function CadastroProprietario() {
                     <p>{nome} </p>
                     <input type="email" placeholder="Email" onChange={ e => setEmail(e.target.value)}/>
                     <p>{email} </p>
-                    <input type="text" placeholder="Número do CREA" onChange={ e => setCrea(e.target.value)}/>
-                    <p>{crea} </p>
+                    <input type="text" placeholder="Número do CPF" onChange={ e => setCpf(e.target.value)}/>
+                    <p>{cpf} </p>
                     <input type="password" placeholder="Senha" onChange={ e => setSenha(e.target.value)}/>
                     <p>{senha} </p>
                     <input type="password" placeholder="Confirmar senha" onChange={ e => setConfirmSenha(e.target.value)}/>
