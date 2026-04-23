@@ -1,5 +1,6 @@
 import { useState } from "react";
 import login from "../services/authService";
+import { ValidateLoginFields } from "../utils/validations";
 import { useNavigate, Link } from "react-router-dom";
 
 function Login({ onLogin }) {
@@ -7,10 +8,19 @@ function Login({ onLogin }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [crea, setCrea] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
 
     const navigate = useNavigate();
 
     const logar = async () => {
+        setErrorMessage("");
+
+        const erro = ValidateLoginFields(email, password);
+        if (erro) {
+            setErrorMessage(erro);
+            return;
+        }
+
         try {
             const data = await login({ email, password, role, crea });
 
@@ -22,6 +32,7 @@ function Login({ onLogin }) {
 
             navigate(`/${role}`);
         } catch (error) {
+            setErrorMessage("E-mail ou senha inválidos");
             console.error("Erro no login:", error);
         }
     };
@@ -35,6 +46,13 @@ function Login({ onLogin }) {
                 </div>
 
                 <div className="flex flex-col items-center mb-5">
+
+                    {errorMessage && (
+                        <p className="text-red-500 text-sm mb-2 font-bold">
+                            {errorMessage}
+                        </p>
+                    )}
+
                     <img src="/src/assets/svg/logo-portal.svg" alt="" />
                     <h3 className="text-2xl font-semibold text-[var(--laranja-principal)]">
                         Manual do Proprietário
@@ -75,7 +93,12 @@ function Login({ onLogin }) {
                 </div>
 
                 <div className="flex flex-col items-center mt-5">
-                    
+
+                {errorMessage && (
+                    <p className="text-red-500 text-sm mb-4 font-bold">
+                        {errorMessage}
+                    </p>
+                )}
                     <input 
                         type="email"
                         placeholder="Email"
