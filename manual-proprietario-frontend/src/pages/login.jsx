@@ -46,13 +46,6 @@ function Login({ onLogin }) {
                 </div>
 
                 <div className="flex flex-col items-center mb-5">
-
-                    {errorMessage && (
-                        <p className="text-red-500 text-sm mb-2 font-bold">
-                            {errorMessage}
-                        </p>
-                    )}
-
                     <img src="/src/assets/svg/logo-portal.svg" alt="" />
                     <h3 className="text-2xl font-semibold text-[var(--laranja-principal)]">
                         Manual do Proprietário
