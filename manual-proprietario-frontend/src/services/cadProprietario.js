@@ -2,7 +2,7 @@ import api from "./api";
 
 async function cadastrarProprietario({ nome, email, cpf, senha, confirmSenha}) {
 
-    const response = await api.post("/api/cadastro-construtor", {
+    const response = await api.post("/api/cadastro-proprietario", {
         nome,
         email,
         cpf,
