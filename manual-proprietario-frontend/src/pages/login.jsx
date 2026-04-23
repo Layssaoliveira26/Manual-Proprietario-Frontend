@@ -6,12 +6,13 @@ function Login({ onLogin }) {
     const [role, setRole] = useState("proprietario");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [crea, setCrea] = useState("");
 
     const navigate = useNavigate();
 
     const logar = async () => {
         try {
-            const data = await login({ email, password, role });
+            const data = await login({ email, password, role, crea });
 
             localStorage.setItem("token", data.token);
 
@@ -48,7 +49,9 @@ function Login({ onLogin }) {
                                 ? "btn-laranja text-white"
                                 : "btn-branco text-[var(--laranja-principal)]"
                         }`}
-                        onClick={() => setRole("proprietario")}
+                        onClick={() => {
+                            setRole("proprietario");
+                        }}
                         type="button"
                     >
                         Proprietário
@@ -60,7 +63,10 @@ function Login({ onLogin }) {
                                 ? "btn-laranja text-white"
                                 : "btn-branco text-[var(--laranja-principal)]"
                         }`}
-                        onClick={() => setRole("construtor")}
+                        onClick={() => {
+                            setRole("construtor");
+                            setCrea(""); 
+                        }}
                         type="button"
                     >
                         Construtor
@@ -77,6 +83,15 @@ function Login({ onLogin }) {
                         onChange={(e) => setEmail(e.target.value)}
                     />
 
+                    {role === "proprietario" && (
+                        <input 
+                            type="text"
+                            placeholder="Número do CREA"
+                            value={crea}
+                            onChange={(e) => setCrea(e.target.value)}
+                        />
+                    )}
+
                     <input 
                         type="password"
                         placeholder="Senha"
@@ -85,7 +100,7 @@ function Login({ onLogin }) {
                     />
 
                     <button 
-                        type="submit"
+                        type="button"
                         className="btn-telas-iniciais mt-2"
                         onClick={logar}
                     >
