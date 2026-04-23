@@ -6,15 +6,34 @@ function Login({ onLogin }) {
     const [role, setRole] = useState("proprietario");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [crea, setCrea] = useState("");
+    const [crea, setCrea] = useState(""); // Estado para o CREA
 
     const navigate = useNavigate();
 
     const logar = async () => {
         try {
-            const data = await login({ email, password, role, crea });
+            // Formata o perfil para maiúsculo (como o banco exige)
+            const profile = role.toUpperCase(); 
 
-            localStorage.setItem("token", data.token);
+            // Monta o pacote base
+            const payload = {
+                email: email,
+                password: password,
+                profile: profile
+            };
+
+            // Se for construtor, adiciona o CREA no pacote de envio
+            if (profile === "CONSTRUTOR") {
+                payload.crea = crea;
+            }
+
+            const data = await login(payload);
+
+            // O nosso back-end devolve o token dentro de data.data.user.token
+            const token = data.data?.user?.token;
+            if (token) {
+                localStorage.setItem("token", token);
+            }
 
             if (onLogin) {
                 onLogin({ email, role });
@@ -22,6 +41,8 @@ function Login({ onLogin }) {
 
             navigate(`/${role}`);
         } catch (error) {
+            const mensagemErro = error.response?.data?.message || "E-mail ou senha inválidos.";
+            alert("Erro ao logar: " + mensagemErro);
             console.error("Erro no login:", error);
         }
     };
@@ -34,6 +55,7 @@ function Login({ onLogin }) {
                     <img src="/src/assets/svg/detalhe-form.svg" alt="" />
                 </div>
 
+                {/* LOGO */}
                 <div className="flex flex-col items-center mb-5">
                     <img src="/src/assets/svg/logo-portal.svg" alt="" />
                     <h3 className="text-2xl font-semibold text-[var(--laranja-principal)]">
@@ -42,16 +64,13 @@ function Login({ onLogin }) {
                 </div>
 
                 <div className="flex bg-[var(--cor-form)] p-1 justify-center rounded-sm">
-                    
                     <button 
                         className={`py-2 px-8 rounded-sm font-medium transition ${
                             role === "proprietario"
                                 ? "btn-laranja text-white"
                                 : "btn-branco text-[var(--laranja-principal)]"
                         }`}
-                        onClick={() => {
-                            setRole("proprietario");
-                        }}
+                        onClick={() => setRole("proprietario")}
                         type="button"
                     >
                         Proprietário
@@ -63,15 +82,11 @@ function Login({ onLogin }) {
                                 ? "btn-laranja text-white"
                                 : "btn-branco text-[var(--laranja-principal)]"
                         }`}
-                        onClick={() => {
-                            setRole("construtor");
-                            setCrea(""); 
-                        }}
+                        onClick={() => setRole("construtor")}
                         type="button"
                     >
                         Construtor
                     </button>
-
                 </div>
 
                 <div className="flex flex-col items-center mt-5">
@@ -83,6 +98,7 @@ function Login({ onLogin }) {
                         onChange={(e) => setEmail(e.target.value)}
                     />
 
+                    {/* Mostra o campo CREA APENAS se Construtor estiver selecionado */}
                     {role === "construtor" && (
                         <input 
                             type="text"
@@ -106,13 +122,12 @@ function Login({ onLogin }) {
                     >
                         Entrar
                     </button>
-
                 </div>
 
                 <div className="mt-6 text-center">
-                    <Link to="/redefinir-senha" className="text-[var(--laranja-principal)] mb-2 cursor-pointer">
+                    <p className="text-[var(--laranja-principal)] mb-2 cursor-pointer">
                         Esqueceu a senha?
-                    </Link>
+                    </p>
 
                     <p className="text-gray-400">
                         Ainda não tem conta?{" "}
@@ -132,7 +147,6 @@ function Login({ onLogin }) {
                 <div className="flex justify-start mt-4">
                     <img src="/src/assets/svg/detalhe-form.svg" alt="" />
                 </div>
-
             </div>
         </div>
     );

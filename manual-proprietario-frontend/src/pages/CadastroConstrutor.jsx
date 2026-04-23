@@ -5,7 +5,6 @@ import { useNavigate, Link } from "react-router-dom";
 import cadastrarConstrutor from "../services/cadConstrutor";
 
 function CadastroConstrutor() {
-
     const [ nome, setNome ] = useState("");
     const [ email, setEmail ] = useState("");
     const [ cpf, setCpf ] = useState("");
@@ -16,19 +15,30 @@ function CadastroConstrutor() {
 
     const cadastrarConst = async () => {
         try {
-            const data = await cadastrarConstrutor({ nome, email, cpf, crea, senha, confirmSenha });
+            // Traduzindo os dados para o padrão do Back-end
+            const payload = {
+                name: nome,
+                email: email,
+                cpf: cpf,
+                crea: crea,
+                password: senha,
+                confirmPassword: confirmSenha,
+                profile: "CONSTRUTOR"
+            };
 
+            await cadastrarConstrutor(payload);
             navigate("/login");
         } catch(error) {
-            console.error("Erro no cadastro", error)
+            // Mostra o erro do back-end na tela (ex: erro do Zod)
+            const mensagemErro = error.response?.data?.message || "Erro desconhecido ao cadastrar";
+            alert("Erro: " + mensagemErro);
+            console.error("Erro no cadastro", error);
         }
     }
 
     return (
         <div className="flex min-h-screen w-full items-center justify-center py-6">
-            
             <div className="items-start form-login mt-0 pt-0 pb-6 px-10 rounded-xl shadow-xl ">
-                
                 <div className="flex justify-end mb-4">
                     <img src={detalhe} alt="" />
                 </div>
@@ -65,7 +75,6 @@ function CadastroConstrutor() {
                 <div className="flex justify-start mt-4">
                     <img src={detalhe} alt="" />
                 </div>
-
             </div>
         </div>
     );

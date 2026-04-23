@@ -1,17 +1,12 @@
 import api from "./api";
 
-async function cadastrarProprietario({ nome, email, cpf, senha, confirmSenha}) {
+// Agora ele recebe o 'payload' já formatado da tela
+async function cadastrarProprietario(payload) {
 
-    const response = await api.post("/api/cadastro-proprietario", {
-        nome,
-        email,
-        cpf,
-        senha, 
-        confirmSenha,
-    })
+    // Mudamos a rota de "/api/cadastro-proprietario" para a oficial do seu back-end: "/users"
+    const response = await api.post("/users", payload);
 
     return response.data;
-
 }
 
-export default cadastrarProprietario
+export default cadastrarProprietario;
