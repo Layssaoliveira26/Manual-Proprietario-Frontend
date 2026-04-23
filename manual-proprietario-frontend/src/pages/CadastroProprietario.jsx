@@ -1,7 +1,28 @@
+import { useState } from "react";
 import detalhe from "../assets/svg/detalhe-form.svg";
 import logo from "../assets/svg/logo-portal.svg";
+import { useNavigate } from "react-router-dom";
+import cadastrarProprietario from "../services/cadProprietario";
 
 function CadastroProprietario() {
+
+    const [ nome, setNome ] = useState("");
+    const [ email, setEmail ] = useState("");
+    const [ crea, setCrea ] = useState("");
+    const [ senha, setSenha ] = useState("");
+    const [ confirmSenha, setConfirmSenha ] = useState("");
+    const navigate = useNavigate();
+
+    const cadastrarProp = async () => {
+        try {
+            const data = await cadastrarProprietario({ nome, email, crea, senha, confirmSenha });
+
+            navigate("/login");
+        } catch(error) {
+            console.error("Erro no cadastro", error)
+        }
+    }
+
     return (
         <div className="flex min-h-screen w-full items-center justify-center py-6">
             
@@ -19,13 +40,18 @@ function CadastroProprietario() {
                 </div>
 
                 <div className="campos-form">
-                    <input type="text" placeholder="Nome Completo" />
-                    <input type="email" placeholder="Email" />
-                    <input type="text" placeholder="Número do CREA" />
-                    <input type="password" placeholder="Senha" />
-                    <input type="password" placeholder="Confirmar senha" />
+                    <input type="text" placeholder="Nome Completo" onChange={ e => setNome(e.target.value)}/>
+                    <p>{nome} </p>
+                    <input type="email" placeholder="Email" onChange={ e => setEmail(e.target.value)}/>
+                    <p>{email} </p>
+                    <input type="text" placeholder="Número do CREA" onChange={ e => setCrea(e.target.value)}/>
+                    <p>{crea} </p>
+                    <input type="password" placeholder="Senha" onChange={ e => setSenha(e.target.value)}/>
+                    <p>{senha} </p>
+                    <input type="password" placeholder="Confirmar senha" onChange={ e => setConfirmSenha(e.target.value)}/>
+                    <p>{confirmSenha} </p>
 
-                    <button type="submit" className="btn-telas-iniciais">
+                    <button type="submit" className="btn-telas-iniciais" onClick={cadastrarProp}>
                         Cadastrar
                     </button>
                 </div>
