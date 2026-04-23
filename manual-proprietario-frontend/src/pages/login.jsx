@@ -110,9 +110,9 @@ function Login({ onLogin }) {
                 </div>
 
                 <div className="mt-6 text-center">
-                    <p className="text-[var(--laranja-principal)] mb-2 cursor-pointer">
+                    <Link to="/redefinir-senha" className="text-[var(--laranja-principal)] mb-2 cursor-pointer">
                         Esqueceu a senha?
-                    </p>
+                    </Link>
 
                     <p className="text-gray-400">
                         Ainda não tem conta?{" "}
