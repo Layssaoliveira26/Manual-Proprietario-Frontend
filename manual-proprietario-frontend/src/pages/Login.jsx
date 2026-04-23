@@ -1,35 +1,43 @@
 import { useState } from "react";
 import login from "../services/authService";
+import { ValidateLoginFields } from "../utils/validations";
 import { useNavigate, Link } from "react-router-dom";
 
 function Login({ onLogin }) {
     const [role, setRole] = useState("proprietario");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [crea, setCrea] = useState(""); // Estado para o CREA
+    const [crea, setCrea] = useState(""); 
+    const [errorMessage, setErrorMessage] = useState("");
 
     const navigate = useNavigate();
 
     const logar = async () => {
+        setErrorMessage("");
+
+        // Validação local do Front-end (Layssa)
+        const erro = ValidateLoginFields(email, password);
+        if (erro) {
+            setErrorMessage(erro);
+            return;
+        }
+
         try {
-            // Formata o perfil para maiúsculo (como o banco exige)
             const profile = role.toUpperCase(); 
 
-            // Monta o pacote base
             const payload = {
                 email: email,
                 password: password,
                 profile: profile
             };
 
-            // Se for construtor, adiciona o CREA no pacote de envio
             if (profile === "CONSTRUTOR") {
                 payload.crea = crea;
             }
 
+            // Chamada para a sua integração
             const data = await login(payload);
 
-            // O nosso back-end devolve o token dentro de data.data.user.token
             const token = data.data?.user?.token;
             if (token) {
                 localStorage.setItem("token", token);
@@ -41,8 +49,9 @@ function Login({ onLogin }) {
 
             navigate(`/${role}`);
         } catch (error) {
-            const mensagemErro = error.response?.data?.message || "E-mail ou senha inválidos.";
-            alert("Erro ao logar: " + mensagemErro);
+            // Unindo o erro do Back com o estado de erro do Front
+            const mensagemDoBack = error.response?.data?.message || "E-mail ou senha inválidos.";
+            setErrorMessage(mensagemDoBack);
             console.error("Erro no login:", error);
         }
     };
@@ -55,7 +64,6 @@ function Login({ onLogin }) {
                     <img src="/src/assets/svg/detalhe-form.svg" alt="" />
                 </div>
 
-                {/* LOGO */}
                 <div className="flex flex-col items-center mb-5">
                     <img src="/src/assets/svg/logo-portal.svg" alt="" />
                     <h3 className="text-2xl font-semibold text-[var(--laranja-principal)]">
@@ -90,7 +98,14 @@ function Login({ onLogin }) {
                 </div>
 
                 <div className="flex flex-col items-center mt-5">
-                    
+
+                    {/* Exibição da mensagem de erro da Layssa */}
+                    {errorMessage && (
+                        <p className="text-red-500 text-sm mb-4 font-bold text-center">
+                            {errorMessage}
+                        </p>
+                    )}
+
                     <input 
                         type="email"
                         placeholder="Email"
@@ -98,7 +113,6 @@ function Login({ onLogin }) {
                         onChange={(e) => setEmail(e.target.value)}
                     />
 
-                    {/* Mostra o campo CREA APENAS se Construtor estiver selecionado */}
                     {role === "construtor" && (
                         <input 
                             type="text"
@@ -125,7 +139,6 @@ function Login({ onLogin }) {
                 </div>
 
                 <div className="mt-6 text-center">
-                    {/* Transformamos o <p> em um <Link> para a rota que vamos criar */}
                     <Link 
                         to="/esqueci-senha" 
                         className="block text-[var(--laranja-principal)] mb-2 cursor-pointer hover:underline"
