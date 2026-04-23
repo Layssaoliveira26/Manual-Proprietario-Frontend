@@ -2,6 +2,7 @@ import { useState } from 'react';
 import CadastroProprietario from "./pages/CadastroProprietario"
 import CadastroConstrutor from './pages/CadastroConstrutor';
 import RedefinirSenha from './pages/RedefinicaoSenha';
+import EsqueciSenha from './pages/EsqueciSenha';
 import './App.css'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
@@ -44,6 +45,9 @@ const handleLogin = (userData) => {
           path="/redefinir-senha"
           element={<RedefinirSenha/>}
         />
+
+        <Route path="/esqueci-senha" 
+        element={<EsqueciSenha />} />
 
       </Routes>
     </BrowserRouter>
