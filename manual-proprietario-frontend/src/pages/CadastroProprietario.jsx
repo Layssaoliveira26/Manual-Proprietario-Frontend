@@ -1,7 +1,7 @@
 import { useState } from "react";
 import detalhe from "../assets/svg/detalhe-form.svg";
 import logo from "../assets/svg/logo-portal.svg";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import cadastrarProprietario from "../services/cadProprietario";
 
 function CadastroProprietario() {
@@ -41,15 +41,10 @@ function CadastroProprietario() {
 
                 <div className="campos-form">
                     <input type="text" placeholder="Nome Completo" onChange={ e => setNome(e.target.value)}/>
-                    <p>{nome} </p>
                     <input type="email" placeholder="Email" onChange={ e => setEmail(e.target.value)}/>
-                    <p>{email} </p>
                     <input type="text" placeholder="Número do CPF" onChange={ e => setCpf(e.target.value)}/>
-                    <p>{cpf} </p>
                     <input type="password" placeholder="Senha" onChange={ e => setSenha(e.target.value)}/>
-                    <p>{senha} </p>
                     <input type="password" placeholder="Confirmar senha" onChange={ e => setConfirmSenha(e.target.value)}/>
-                    <p>{confirmSenha} </p>
 
                     <button type="submit" className="btn-telas-iniciais" onClick={cadastrarProp}>
                         Cadastrar
@@ -59,9 +54,9 @@ function CadastroProprietario() {
                 <div className="extra-form mt-3 text-center">
                     <p className="text-gray-400">
                         Já possui conta?{" "}
-                        <span className="text-[var(--laranja-principal)] cursor-pointer">
+                        <Link to="/login" className="text-[var(--laranja-principal)] cursor-pointer">
                             Login
-                        </span>
+                        </Link>
                     </p>
                 </div>
 
