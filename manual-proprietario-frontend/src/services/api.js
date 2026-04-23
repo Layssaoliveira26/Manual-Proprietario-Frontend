@@ -17,8 +17,8 @@ api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        return config;
     }
+    return config;
 })
 
 //Definindo o interceptor(função que, nesse caso, executa depois da resposta chegar)
@@ -30,7 +30,7 @@ api.interceptors.response.use(
     (error) => {
         if(error.response?.status === 401) {
             localStorage.removeItem('token');
-            window.location.href('/login');
+            window.location.href = '/login';
         }
         return Promise.reject(error);
     }
