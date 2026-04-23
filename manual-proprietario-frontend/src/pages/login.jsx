@@ -83,7 +83,7 @@ function Login({ onLogin }) {
                         onChange={(e) => setEmail(e.target.value)}
                     />
 
-                    {role === "proprietario" && (
+                    {role === "construtor" && (
                         <input 
                             type="text"
                             placeholder="Número do CREA"
