@@ -33,7 +33,6 @@ function Login({ onLogin }) {
                     <img src="/src/assets/svg/detalhe-form.svg" alt="" />
                 </div>
 
-                {/* LOGO */}
                 <div className="flex flex-col items-center mb-5">
                     <img src="/src/assets/svg/logo-portal.svg" alt="" />
                     <h3 className="text-2xl font-semibold text-[var(--laranja-principal)]">
@@ -86,7 +85,7 @@ function Login({ onLogin }) {
                     />
 
                     <button 
-                        type="button"
+                        type="submit"
                         className="btn-telas-iniciais mt-2"
                         onClick={logar}
                     >
