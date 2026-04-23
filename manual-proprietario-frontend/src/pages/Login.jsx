@@ -125,9 +125,13 @@ function Login({ onLogin }) {
                 </div>
 
                 <div className="mt-6 text-center">
-                    <p className="text-[var(--laranja-principal)] mb-2 cursor-pointer">
+                    {/* Transformamos o <p> em um <Link> para a rota que vamos criar */}
+                    <Link 
+                        to="/esqueci-senha" 
+                        className="block text-[var(--laranja-principal)] mb-2 cursor-pointer hover:underline"
+                    >
                         Esqueceu a senha?
-                    </p>
+                    </Link>
 
                     <p className="text-gray-400">
                         Ainda não tem conta?{" "}
