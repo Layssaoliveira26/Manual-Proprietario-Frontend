@@ -1,10 +1,11 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600&display=swap');
 
 :root {
     --cor-fundo: #f8f8f0;
     --cor-form: rgb(253, 253, 248);
     --laranja-principal: #C15A3E;
+    --cor-azul: #004080;
+
 }
 
 body {
@@ -16,18 +17,13 @@ body {
     max-width: 500px;
     background-color: var(--cor-form);
     padding-top: 20px;
+    
 }
 
 .campos-form {
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-
-h3 {
-    font-family: "Manrope", sans-serif;
-
 }
 
 .btn-laranja {
@@ -41,7 +37,7 @@ h3 {
     box-shadow: 5px 5px 5px rgba(112, 111, 111, 0.185);
 }
 
-input {
+.padrao {
     width: 100%;
     max-width: 450px;
     margin-bottom: 15px;
@@ -63,3 +59,115 @@ input {
     font-weight: 500;
 }
 
+h5 {
+    color: #004080;
+    font-size: 20px;
+    font-weight: 600;
+
+}
+
+h6 {
+    padding: 10px 45px;
+    color: #455a64;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+h6:hover {
+    background-color: var(--cor-fundo);
+    border-right-width: 4px;
+    border-right-color: #004080;
+} 
+
+.h6-sair {
+    color: var(--laranja-principal);
+}
+
+.page-title {
+    color: var(--cor-azul);
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 1.2;
+    margin: 0 0 16px 0;
+    font-family: "Manrope", sans-serif;
+}
+
+.tb-manuais {
+    border-collapse: separate;
+    border-spacing: 0;
+    box-shadow:
+        0 0 6px 2px rgba(0, 0, 0, 0.08),
+        0 0 12px rgba(0, 0, 0, 0.12);
+    font-family: "Manrope", sans-serif;
+}
+
+.tb-manuais thead th:first-child {
+    border-radius: 8px 0 0 0;
+}
+
+.tb-manuais thead th:last-child {
+    border-radius: 0 8px 0 0;
+}
+
+th {
+    color: white;
+    font-size: 18px;
+    font-weight: 400;
+}
+
+td {
+    font-size: 16px;
+    background-color: #FFF; 
+    font-family: "Manrope", sans-serif;
+    color: #455A64;
+}
+
+tr {
+    border-color: #080606;
+    border-width: 2px;
+}
+
+.tb-manuais tbody td:first-child {
+  font-weight: 600; 
+  color: #263238;
+}
+
+.td-entregue {
+    max-width:100%;
+    width: 40%;
+    text-align: center;
+    padding: 6px 0;
+    border-radius: 12px;
+    background-color: #DAF8E6;
+    color: #1A8245;
+    font-weight: 600;
+}
+
+.td-construcao {
+    max-width:100%;
+    width: 50%;
+    text-align: center;
+    padding: 7px 0;
+    border-radius: 12px;
+    background-color: #D0F0FD;
+    color: #1F3A8A;
+    font-weight: 600;
+
+}
+
+.td-desativado {
+    max-width:100%;
+    width: 45%;
+    text-align: center;
+    padding: 7px 0;
+    border-radius: 12px;
+    background-color: #FEEBEB;
+    color: #E10E0E;
+    font-weight: 600;
+}
+
+h4 {
+    font-size: 24px;
+    color: #9BB0BA;
+    font-weight: 600px;
+}

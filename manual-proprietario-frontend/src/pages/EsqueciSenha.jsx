@@ -31,6 +31,7 @@ function EsqueciSenha() {
                         type="email" 
                         placeholder="Seu e-mail cadastrado" 
                         onChange={(e) => setEmail(e.target.value)} 
+                        className="padrao"
                     />
                     <button type="button" className="btn-telas-iniciais mt-2" onClick={handleRequest}>
                         Enviar Link

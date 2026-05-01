@@ -6,6 +6,7 @@ import EsqueciSenha from './pages/EsqueciSenha';
 import './App.css'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
+import Home from './pages/Home';
 
 function App() {
 
@@ -48,6 +49,11 @@ const handleLogin = (userData) => {
 
         <Route path="/esqueci-senha" 
         element={<EsqueciSenha />} />
+
+        <Route
+          path="/home"
+          element={<Home />}
+        />
 
       </Routes>
     </BrowserRouter>
