@@ -7,6 +7,8 @@ import './App.css'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Home from './pages/Home';
+import Manuais from './pages/Manuais';
+import Projetos from './pages/Projetos';
 
 function App() {
 
@@ -54,6 +56,23 @@ const handleLogin = (userData) => {
           path="/home"
           element={<Home />}
         />
+
+        <Route
+          path="/construtor"
+          element={<Home />}
+        />
+
+        <Route
+          path="/manuais"
+          element={<Manuais />}
+        />
+
+        <Route
+          path="/projetos"
+          element={<Projetos />}
+        />
+
+        {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
 
       </Routes>
     </BrowserRouter>
