@@ -171,3 +171,9 @@ h4 {
     color: #9BB0BA;
     font-weight: 600px;
 }
+
+label {
+    color: var(--laranja-principal);
+    font-size: 16px;
+    font-weight: 600;
+}

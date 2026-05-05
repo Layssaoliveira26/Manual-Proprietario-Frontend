@@ -23,6 +23,7 @@ function Manuais() {
 			<div className="flex flex-1 overflow-hidden">
 				<BarraLateral />
 				<main className="w-full overflow-y-auto px-10 py-8">
+                    
 					<h3 className="page-title pl-2">Manuais Recentes</h3>
 					<div className="w-full overflow-x-auto overflow-y-visible p-2">
 						<table className="tb-manuais w-full">

@@ -23,7 +23,11 @@ function Projetos() {
             <div className="flex flex-1 overflow-hidden">
                 <BarraLateral />
                 <main className="w-full overflow-y-auto px-10 py-8">
-                    <h3 className="page-title pl-2">Projetos recentes</h3>
+                    <div className="flex items-center text-center justify-between">
+                        <h3 className="page-title pl-2">Projetos recentes</h3>
+                        <button className="text-md w-1/8 h-10 rounded-sm border-2 font-semibold border-[var(--cor-azul)] text-[var(--cor-azul)] ">Criar novo projeto</button>
+                    </div>
+                    
                         <div className="w-full overflow-x-auto overflow-y-visible p-2">
                         <table className="tb-manuais w-full">
                             <colgroup>

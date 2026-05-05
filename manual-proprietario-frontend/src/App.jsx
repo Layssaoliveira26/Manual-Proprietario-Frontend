@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 import Manuais from './pages/Manuais';
 import Projetos from './pages/Projetos';
+import CadastroProjeto from './pages/CadastroProjeto';
 
 function App() {
 
@@ -72,6 +73,10 @@ const handleLogin = (userData) => {
           element={<Projetos />}
         />
 
+        <Route
+          path="/cadastro-projeto"
+          element={<CadastroProjeto/>}
+        />
         {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
 
       </Routes>
