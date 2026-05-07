@@ -17,7 +17,6 @@ function getClasseStatus(status) {
 	}
 }
 
-
 function formateStatus(status) {
 	switch (status) {
 		case "ENTREGUE":
