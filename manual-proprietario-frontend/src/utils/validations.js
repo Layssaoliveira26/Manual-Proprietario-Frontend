@@ -63,3 +63,76 @@ export const ValidatePasswordMatch = (password, confirmation) => {
     }
     return "";
 }
+/* Valida se um campo obrigatório foi preenchido. */
+export const ValidateRequired = (value, fieldName) => {
+    if (!value || (typeof value === 'string' && value.trim() === "")) {
+        return `O campo ${fieldName} é obrigatório.`;
+    }
+    return "";
+};
+
+/* Valida a lógica das datas do projeto. */
+export const ValidateProjectDates = (dataInicio, dataConclusao) => {
+    if (!dataInicio) {
+        return "A data de início é obrigatória.";
+    }
+
+    if (dataInicio && dataConclusao) {
+        const inicio = new Date(dataInicio);
+        const conclusao = new Date(dataConclusao);
+
+        if (conclusao < inicio) {
+            return "A conclusão estimada não pode ser anterior ao início.";
+        }
+    }
+    return "";
+};
+
+/* Valida o número do ART */
+export const ValidateART = (art) => {
+    if (!art) {
+        return "O número do ART é obrigatório.";
+    }
+    // Regex para garantir que o ART tenha apenas números (ajuste se seu ART tiver letras)
+    const artRegex = /^\d+$/;
+    if (!artRegex.test(art)) {
+        return "O ART deve conter apenas algarismos numéricos.";
+    }
+    return "";
+};
+
+/* Campo com no mínimo 3 caractere */
+export const ValidateMinLength = (value, min, fieldName) => {
+    if (value && value.trim().length < min) {
+        return `O campo ${fieldName} deve ter no mínimo ${min} caracteres.`;
+    }
+    return "";
+};
+
+/* Valida se o arquivo foi enviado */
+export const ValidateFileRequired = (file, fieldName) => {
+    if (!file) {
+        return `O arquivo de ${fieldName} é obrigatório.`;
+    }
+    return "";
+};
+
+/* Valida a extensão do arquivo */
+export const ValidateFileType = (file, allowedExtensions = ['pdf', 'jpg', 'png', 'dwg']) => {
+    if (!file) return "";
+    const extension = file.name.split('.').pop().toLowerCase();
+    if (!allowedExtensions.includes(extension)) {
+        return `Formato inválido (${extension}). Use: ${allowedExtensions.join(', ')}`;
+    }
+    return "";
+};
+
+/* Valida o tamanho do arquivo */
+export const ValidateFileSize = (file, maxSizeMB = 5) => {
+    if (!file) return "";
+    const sizeInMB = file.size / (1024 * 1024);
+    if (sizeInMB > maxSizeMB) {
+        return `O arquivo deve ser menor que ${maxSizeMB}MB.`;
+    }
+    return "";
+};
