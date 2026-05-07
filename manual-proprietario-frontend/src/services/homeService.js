@@ -16,16 +16,13 @@ export const buscarDadosDashboard = async () => {
         const projetosBrutos = resposta.data?.data || [];
 
         const projetosFormatados = projetosBrutos.map(proj => ({
-
             id: proj.idProjeto || proj.id,
-            
             projeto: proj.nomeProjeto || proj.nome || "Projeto sem nome",
             
-            responsavel: proj.construtor?.user?.nome || "Você",
+            responsavel: proj.responsavel || "Não informado",
             
             status: statusTraduzido[proj.status] || proj.status, 
 
-            // Formata data
             ultimaAtualizacao: proj.ultimaAtualizacao 
                 ? new Date(proj.ultimaAtualizacao).toLocaleDateString('pt-BR') 
                 : "Sem data"
