@@ -89,7 +89,6 @@ const handleLogin = (userData) => {
           path="cadastro-projeto3"
           element={<CadastroProjeto3 />}
         />
-        {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
 
       </Routes>
     </BrowserRouter>

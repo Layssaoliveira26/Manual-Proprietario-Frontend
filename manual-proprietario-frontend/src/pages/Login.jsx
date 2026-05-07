@@ -13,49 +13,57 @@ function Login({ onLogin }) {
     const navigate = useNavigate();
 
     const logar = async () => {
-        setErrorMessage("");
+    setErrorMessage("");
 
-        // Validação local do Front-end (Layssa)
-        const erro = ValidateLoginFields(email, password);
-        if (erro) {
-            setErrorMessage(erro);
-            return;
+    const erro = ValidateLoginFields(email, password);
+    if (erro) {
+        setErrorMessage(erro);
+        return;
+    }
+
+    try {
+        // Criar o profile e o payload ANTES de chamar o login
+        const profileEnviado = role.toUpperCase(); 
+        const payload = {
+            email: email.trim().toLowerCase(),
+            password: password,
+            profile: profileEnviado
+        };
+
+        if (profileEnviado === "CONSTRUTOR") {
+            payload.crea = crea;
         }
 
-        try {
-            const profile = role.toUpperCase(); 
+        console.log(">>> Enviando dados para o Back:", payload);
 
-            const payload = {
-                email: email,
-                password: password,
-                profile: profile
-            };
+        // Uma única chamada ao serviço
+        const response = await login(payload);
+        console.log(">>> Resposta completa do Back:", response);
 
-            if (profile === "CONSTRUTOR") {
-                payload.crea = crea;
-            }
+        const token = response.data?.token || response.token;
 
-            // Chamada para a sua integração
-            const data = await login(payload);
-
-            const token = data.data?.user?.token;
-            if (token) {
-                localStorage.setItem("token", token);
-            }
+        if (token) {
+            localStorage.setItem("token", token);
+            console.log(">>> Sucesso! Token salvo no LocalStorage.");
 
             if (onLogin) {
-                onLogin({ email, role });
+                onLogin({ email, role: profileEnviado }); 
             }
-
-            navigate(`/${role}`);
-        } catch (error) {
-            // Unindo o erro do Back com o estado de erro do Front
-            const mensagemDoBack = error.response?.data?.message || "E-mail ou senha inválidos.";
-            setErrorMessage(mensagemDoBack);
-            console.error("Erro no login:", error);
+            
+            // Navega para /CONSTRUTOR ou /PROPRIETARIO
+            navigate(`/${profileEnviado}`);
+        } else {
+            console.error(">>> Token não encontrado. Chaves disponíveis:", 
+                response.data ? Object.keys(response.data) : "Objeto data vazio");
+            setErrorMessage("Erro: Estrutura de resposta inválida.");
         }
-    };
 
+    } catch (error) {
+        const mensagemDoBack = error.response?.data?.message || "Erro ao conectar com o servidor.";
+        setErrorMessage(mensagemDoBack);
+        console.error("Erro detalhado:", error.response?.data || error.message);
+    }
+};
     return (
         <div className="flex min-h-screen w-full items-center justify-center py-6">
             <div className="form-login pb-6 px-10 rounded-xl shadow-xl">
