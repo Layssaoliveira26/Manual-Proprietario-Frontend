@@ -9,52 +9,32 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 
 function App() {
+  const [user, setUser] = useState(null);
 
-const [user, setUser] = useState(null);
-
-const handleLogin = (userData) => {
-  setUser(userData);
-}
+  const handleLogin = (userData) => {
+    setUser(userData);
+  }
 
   return (
     <BrowserRouter>
       <Routes>
-
         <Route
           path="/"
           element={
-            user ? <Navigate to={`/${user.role}`} /> : <Navigate to= "/login"/> 
+            user ? <Navigate to={`/${user.role}`} /> : <Navigate to="/login"/> 
           }
         />
 
-        <Route
-          path="/login" 
-          element={<Login onLogin={handleLogin} />}
-        />
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
 
-        <Route
-          path="/cadastro-proprietario"
-          element={<CadastroProprietario/>}
-        />
+        {/* Rotas que correspondem aos perfis do banco */}
+        <Route path="/CONSTRUTOR" element={user ? <Home /> : <Navigate to="/login" />} />
+        <Route path="/PROPRIETARIO" element={user ? <Home /> : <Navigate to="/login" />} />
 
-        <Route
-          path="/cadastro-construtor"
-          element={<CadastroConstrutor/>}
-        />
-
-        <Route
-          path="/redefinir-senha"
-          element={<RedefinirSenha/>}
-        />
-
-        <Route path="/esqueci-senha" 
-        element={<EsqueciSenha />} />
-
-        <Route
-          path="/home"
-          element={<Home />}
-        />
-
+        <Route path="/cadastro-proprietario" element={<CadastroProprietario/>} />
+        <Route path="/cadastro-construtor" element={<CadastroConstrutor/>} />
+        <Route path="/redefinir-senha" element={<RedefinirSenha/>} />
+        <Route path="/esqueci-senha" element={<EsqueciSenha />} />
       </Routes>
     </BrowserRouter>
   )
