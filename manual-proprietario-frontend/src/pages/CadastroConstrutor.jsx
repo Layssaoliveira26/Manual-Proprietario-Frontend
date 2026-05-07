@@ -81,8 +81,8 @@ function CadastroConstrutor() {
                 </div>
 
                 <div className="campos-form">
-                    <input type="text" placeholder="Nome Completo" value={nome} onChange={ e => setNome(e.target.value)}/>
-                    <input type="email" placeholder="Email" value={email} onChange={ e => setEmail(e.target.value)}/>
+                    <input type="text" placeholder="Nome Completo" value={nome} onChange={ e => setNome(e.target.value)} className="padrao"/>
+                    <input type="email" placeholder="Email" value={email} onChange={ e => setEmail(e.target.value)} className="padrao"/>
                     
                     {/* Input com máscara de CPF */}
                     <input 
@@ -90,11 +90,12 @@ function CadastroConstrutor() {
                         placeholder="Número do CPF" 
                         value={cpf} 
                         onChange={(e) => setCpf(maskCPF(e.target.value))}
+                        className="padrao"
                     />
                     
-                    <input type="text" placeholder="Número do CREA" value={crea} onChange={ e => setCrea(e.target.value)}/>
-                    <input type="password" placeholder="Senha" value={senha} onChange={ e => setSenha(e.target.value)}/>
-                    <input type="password" placeholder="Confirmar senha" value={confirmSenha} onChange={ e => setConfirmSenha(e.target.value)}/>
+                    <input type="text" placeholder="Número do CREA" maxLength="11" value={crea} onChange={ e => setCrea(e.target.value)} className="padrao"/>
+                    <input type="password" placeholder="Senha" value={senha} onChange={ e => setSenha(e.target.value)} className="padrao"/>
+                    <input type="password" placeholder="Confirmar senha" value={confirmSenha} onChange={ e => setConfirmSenha(e.target.value)} className="padrao"/>
 
                     <button type="submit" className="btn-telas-iniciais" onClick={cadastrarConst}>
                         Cadastrar

@@ -111,6 +111,7 @@ function Login({ onLogin }) {
                         placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        className="padrao"
                     />
 
                     {role === "construtor" && (
@@ -119,6 +120,8 @@ function Login({ onLogin }) {
                             placeholder="Número do CREA"
                             value={crea}
                             onChange={(e) => setCrea(e.target.value)}
+                            maxLength={11}
+                            className="padrao"
                         />
                     )}
 
@@ -127,6 +130,7 @@ function Login({ onLogin }) {
                         placeholder="Senha"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        className="padrao"
                     />
 
                     <button 

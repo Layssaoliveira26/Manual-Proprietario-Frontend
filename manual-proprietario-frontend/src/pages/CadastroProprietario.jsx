@@ -76,8 +76,8 @@ function CadastroProprietario() {
                 </div>
 
                 <div className="campos-form">
-                    <input type="text" placeholder="Nome Completo" value={nome} onChange={ e => setNome(e.target.value)}/>
-                    <input type="email" placeholder="Email" value={email} onChange={ e => setEmail(e.target.value)}/>
+                    <input type="text" placeholder="Nome Completo" value={nome} onChange={ e => setNome(e.target.value)} className="padrao"/>
+                    <input type="email" placeholder="Email" value={email} onChange={ e => setEmail(e.target.value)} className="padrao"/>
                     
                     {/* Usando a máscara da Layssa para uma UX melhor */}
                     <input 
@@ -85,10 +85,11 @@ function CadastroProprietario() {
                         placeholder="Número do CPF" 
                         value={cpf} 
                         onChange={(e) => setCpf(maskCPF(e.target.value))}
+                        className="padrao"
                     />
                     
-                    <input type="password" placeholder="Senha" value={senha} onChange={ e => setSenha(e.target.value)}/>
-                    <input type="password" placeholder="Confirmar senha" value={confirmSenha} onChange={ e => setConfirmSenha(e.target.value)}/>
+                    <input type="password" placeholder="Senha" value={senha} onChange={ e => setSenha(e.target.value)} className="padrao"/>
+                    <input type="password" placeholder="Confirmar senha" value={confirmSenha} onChange={ e => setConfirmSenha(e.target.value)} className="padrao"/>
 
                     <button type="submit" className="btn-telas-iniciais" onClick={cadastrarProp}>
                         Cadastrar

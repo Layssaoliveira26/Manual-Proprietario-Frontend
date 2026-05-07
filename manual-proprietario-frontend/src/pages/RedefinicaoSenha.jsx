@@ -66,12 +66,14 @@ function RedefinirSenha() {
                         placeholder="Nova Senha" 
                         value={password}
                         onChange={(e) => setPassword(e.target.value)} 
+                        className="padrao"
                     />
                     <input 
                         type="password" 
                         placeholder="Confirmar nova senha" 
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)} 
+                        className="padrao"
                     />
                     
                     <button 
