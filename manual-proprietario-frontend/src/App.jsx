@@ -10,6 +10,8 @@ import Home from './pages/Home';
 import Manuais from './pages/Manuais';
 import Projetos from './pages/Projetos';
 import CadastroProjeto from './pages/CadastroProjeto';
+import CadastroProjeto2 from './pages/CadastroProjeto2';
+import CadastroProjeto3 from './pages/CadastroProjeto3';
 
 function App() {
 
@@ -75,7 +77,17 @@ const handleLogin = (userData) => {
 
         <Route
           path="/cadastro-projeto"
-          element={<CadastroProjeto/>}
+          element={<CadastroProjeto />}
+        />
+
+        <Route
+          path="/cadastro-projeto2"
+          element={<CadastroProjeto2 />}
+        />
+
+        <Route
+          path="cadastro-projeto3"
+          element={<CadastroProjeto3 />}
         />
         {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
 

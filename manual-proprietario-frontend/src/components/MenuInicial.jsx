@@ -6,7 +6,7 @@ function MenuInicial() {
             <div className="flex items-center">
                 <img src="/src/assets/svg/logo-portal.svg" alt="" className="w-12"/>
                 <h5 className="pl-2">Manual do Proprietário</h5>
-                <h5 className="pl-12">Início</h5>
+                {/* <h5 className="pl-12">Início</h5> */}
             </div>
             <div className="flex justify-end items-center">
                 <select name="" id="" className="w-40 h-12 m-0 border border-[#dcdcdc] rounded-l-md text-sm text-[#333333a6]">

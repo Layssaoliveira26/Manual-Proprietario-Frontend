@@ -34,7 +34,7 @@ function Manuais() {
 								<col className="w-1/4" />
 							</colgroup>
 							<thead>
-								<tr className="cabecalho bg-(--laranja-principal) text-white text-sm text-left rounded-2xl font-semibold">
+								<tr className="cabecalho bg-(--laranja-principal) text-white text-sm text-left rounded-2xl font-semibold ">
 									<th className="py-4 px-6">MANUAL</th>
 									<th className="py-4 px-6">RESPONSÁVEL</th>
 									<th className="py-4 px-6">STATUS</th>

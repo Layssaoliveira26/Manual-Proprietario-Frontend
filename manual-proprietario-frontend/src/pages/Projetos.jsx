@@ -2,6 +2,8 @@ import BarraLateral from "../components/BarraLateral"
 import MenuInicial from "../components/MenuInicial"
 import { MdOutlineEngineering } from "react-icons/md";
 import { projetosMock } from "../mocks/projetos";
+import { Link } from "react-router-dom";
+import CadastroProjeto from "./CadastroProjeto";
 
 function getClasseStatus(status) {
     switch(status) {
@@ -25,7 +27,7 @@ function Projetos() {
                 <main className="w-full overflow-y-auto px-10 py-8">
                     <div className="flex items-center text-center justify-between">
                         <h3 className="page-title pl-2">Projetos recentes</h3>
-                        <button className="text-md w-1/8 h-10 rounded-sm border-2 font-semibold border-[var(--cor-azul)] text-[var(--cor-azul)] ">Criar novo projeto</button>
+                        <button className="text-md w-1/8 h-10 rounded-sm border-2 font-semibold border-[var(--cor-azul)] text-[var(--cor-azul)] "><Link to="/cadastro-projeto">Criar novo projeto</Link> </button>
                     </div>
                     
                         <div className="w-full overflow-x-auto overflow-y-visible p-2">

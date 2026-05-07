@@ -1,5 +1,7 @@
 import BarraLateral from "../components/BarraLateral"
 import MenuInicial from "../components/MenuInicial"
+import BarraNumeros from "../components/BarraNumeros";
+import {Link} from "react-router-dom";
 
 
 function CadastroProjeto() {
@@ -10,23 +12,8 @@ function CadastroProjeto() {
                 <BarraLateral />
                 <main className="w-full overflow-y-auto px-10 py-8">
                     <h3 className="page-title pl-2">Configurar Projeto</h3>
-                    <div className="relative flex w-fit mx-auto gap-15 mb-5 before:content-[''] before:absolute before:top-5 before:left-5 before:right-6 before:h-0.5 before:bg-[rgba(0,0,0,0.123)]">
-                        <div className="flex flex-col items-center gap-1">
-                            <span className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[rgba(0,0,0,0.123)] bg-white">1</span>
-                            <p>Obra</p>
-                        </div>
-                        <hr className="hidden" />
-                        <div className="flex flex-col items-center gap-1">
-                            <span className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[rgba(0,0,0,0.123)] bg-white">2</span>
-                            <p>Funcionários</p>
-                        </div>
-                        <hr className="hidden" />
-                        <div className="flex flex-col items-center gap-1">
-                            <span className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-[rgba(0,0,0,0.123)] bg-white">3</span>
-                            <p>Funcionários</p>
-                        </div>
-                    </div>
-                    <div className="flex flex-col justify-center bg-amber-100">
+                    <BarraNumeros />
+                    <div className="flex flex-col justify-center">
                         <form action="">
                             <div className="">
                                 <label for="nomeProj" className="">Nome do Projeto*</label>
@@ -77,8 +64,13 @@ function CadastroProjeto() {
                                 </div> 
                             </div>
                             <div className="flex justify-center items-center gap-3">
-                                <button className="w-full max-w-[150px] py-3 px-4  text-[var(--laranja-principal)] border-[var(--laranja-principal)] border-2 rounded-md font-medium">Cancelar</button>
-                                <button className="w-full max-w-[150px] py-3 px-4 bg-[var(--laranja-principal)] text-white rounded-md font-medium">Próximo</button>
+                                <Link
+                                    to="/projetos"
+                                    className="w-full max-w-37.5 py-3 px-4 text-center text-(--laranja-principal) border-(--laranja-principal) border-2 rounded-md font-medium"
+                                >
+                                    Cancelar
+                                </Link>
+                                <button type="button" className="w-full max-w-37.5 py-3 px-4 bg-(--laranja-principal) text-white rounded-md font-medium"><Link to="/cadastro-projeto2">Próximo</Link></button>
                             </div>
                         </form>
                     </div>
