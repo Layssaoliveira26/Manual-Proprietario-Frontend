@@ -5,6 +5,7 @@ import { MdOutlineEngineering } from "react-icons/md";
 import { buscarDadosDashboard } from "../services/homeService";
 
 function getClasseStatus(status) {
+    const statusLimpo = status?.toString().trim().toLowerCase() || "";
     // Ajuste leve para aceitar o que vem do banco ou o que o service formatou
     switch(status) {
         case "Em construção":

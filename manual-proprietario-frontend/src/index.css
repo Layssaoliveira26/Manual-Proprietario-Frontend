@@ -145,18 +145,18 @@ tr {
 }
 
 .td-entregue {
-    background-color: #DAF8E6;
-    color: #1A8245;
+    background-color: #DAF8E6 !important;
+    color: #1A8245 !important;
 }
 
 .td-construcao {
-    background-color: #D0F0FD;
-    color: #1F3A8A;            
+    background-color: #D0F0FD !important;
+    color: #1F3A8A !important;            
 }
 
 .td-desativado {
-    background-color: #FEEBEB;
-    color: #E10E0E;
+    background-color: #FEEBEB !important;
+    color: #E10E0E !important;
 }
 
 h4 {
