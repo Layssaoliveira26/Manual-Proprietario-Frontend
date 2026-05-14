@@ -6,11 +6,11 @@ import { useEffect, useState } from "react";
 
 function getClasseStatus(status) {
 	switch (status) {
-		case "Entregue":
+		case "ENTREGUE":
 			return "td-entregue";
 		case "EM_CONSTRUCAO":
 			return "td-construcao";
-		case "Desativado":
+		case "DESATIVADO":
 			return "td-desativado";
 		default:
 			return undefined;
@@ -22,7 +22,7 @@ function formateStatus(status) {
 		case "ENTREGUE":
 			return "Entregue";
 		case "EM_CONSTRUCAO":
-			return "Em Construção";
+			return "Em construção";
 		case "DESATIVADO":
 			return "Desativado";
 		default:

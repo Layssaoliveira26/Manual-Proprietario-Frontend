@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'; // Adicionado
+import { useState, useEffect } from 'react'; 
 import BarraLateral from "../components/BarraLateral"
 import MenuInicial from "../components/MenuInicial"
 import { MdOutlineEngineering } from "react-icons/md";
@@ -19,7 +19,7 @@ function getClasseStatus(status) {
 }
 
 function Projetos() {
-    const [projetos, setProjetos] = useState([]); // Estado para os dados reais
+    const [projetos, setProjetos] = useState([]); 
     const [carregando, setCarregando] = useState(true);
 
     useEffect(() => {

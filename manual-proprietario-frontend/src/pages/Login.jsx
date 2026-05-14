@@ -12,58 +12,41 @@ function Login({ onLogin }) {
 
     const navigate = useNavigate();
 
-    const logar = async () => {
-    setErrorMessage("");
+    const logar = async (e) => {
+        e.preventDefault();
+        setErrorMessage("");
 
-    const erro = ValidateLoginFields(email, password);
-    if (erro) {
-        setErrorMessage(erro);
-        return;
-    }
-
-    try {
-        // Criar o profile e o payload ANTES de chamar o login
-        const profileEnviado = role.toUpperCase(); 
-        const payload = {
-            email: email.trim().toLowerCase(),
-            password: password,
-            profile: profileEnviado
-        };
-
-        if (profileEnviado === "CONSTRUTOR") {
-            payload.crea = crea;
+        const erro = ValidateLoginFields(email, password);
+        if (erro) {
+            setErrorMessage(erro);
+            return;
         }
 
-        console.log(">>> Enviando dados para o Back:", payload);
+        try {
+            const profile = role.toUpperCase(); 
+            const payload = {
+                email: email.trim().toLowerCase(),
+                password,
+                profile,
+                ...(profile === "CONSTRUTOR" && { crea }),
+            };
 
-        // Uma única chamada ao serviço
-        const response = await login(payload);
-        console.log(">>> Resposta completa do Back:", response);
+            const response = await login(payload);
+            const token = response?.data?.user?.token;
 
-        const token = response.data?.token || response.token;
-
-        if (token) {
-            localStorage.setItem("token", token);
-            console.log(">>> Sucesso! Token salvo no LocalStorage.");
-
-            if (onLogin) {
-                onLogin({ email, role: profileEnviado }); 
+            if (token) {
+                localStorage.setItem("token", token);
+                onLogin({ email, role: profile }); 
+                navigate(`/${profile}`);
+            } else {
+                setErrorMessage("Erro: Estrutura de resposta inválida.");
             }
-            
-            // Navega para /CONSTRUTOR ou /PROPRIETARIO
-            navigate(`/${profileEnviado}`);
-        } else {
-            console.error(">>> Token não encontrado. Chaves disponíveis:", 
-                response.data ? Object.keys(response.data) : "Objeto data vazio");
-            setErrorMessage("Erro: Estrutura de resposta inválida.");
-        }
 
-    } catch (error) {
-        const mensagemDoBack = error.response?.data?.message || "Erro ao conectar com o servidor.";
-        setErrorMessage(mensagemDoBack);
-        console.error("Erro detalhado:", error.response?.data || error.message);
-    }
-};
+        } catch (error) {
+            setErrorMessage(error.response?.data?.message ?? "Erro ao conectar com o servidor.");
+        }
+    };
+
     return (
         <div className="flex min-h-screen w-full items-center justify-center py-6">
             <div className="form-login pb-6 px-10 rounded-xl shadow-xl">
@@ -82,9 +65,7 @@ function Login({ onLogin }) {
                 <div className="flex bg-[var(--cor-form)] p-1 justify-center rounded-sm">
                     <button 
                         className={`py-2 px-8 rounded-sm font-medium transition ${
-                            role === "proprietario"
-                                ? "btn-laranja text-white"
-                                : "btn-branco text-[var(--laranja-principal)]"
+                            role === "proprietario" ? "btn-laranja text-white" : "btn-branco text-[var(--laranja-principal)]"
                         }`}
                         onClick={() => setRole("proprietario")}
                         type="button"
@@ -94,9 +75,7 @@ function Login({ onLogin }) {
 
                     <button 
                         className={`py-2 px-8 rounded-sm ml-1 font-medium transition ${
-                            role === "construtor"
-                                ? "btn-laranja text-white"
-                                : "btn-branco text-[var(--laranja-principal)]"
+                            role === "construtor" ? "btn-laranja text-white" : "btn-branco text-[var(--laranja-principal)]"
                         }`}
                         onClick={() => setRole("construtor")}
                         type="button"
@@ -105,9 +84,8 @@ function Login({ onLogin }) {
                     </button>
                 </div>
 
-                <div className="flex flex-col items-center mt-5">
+                <form onSubmit={logar} className="flex flex-col items-center mt-5 w-full">
 
-                    {/* Exibição da mensagem de erro da Layssa */}
                     {errorMessage && (
                         <p className="text-red-500 text-sm mb-4 font-bold text-center">
                             {errorMessage}
@@ -142,32 +120,21 @@ function Login({ onLogin }) {
                     />
 
                     <button 
-                        type="button"
+                        type="submit"
                         className="btn-telas-iniciais mt-2"
-                        onClick={logar}
                     >
                         Entrar
                     </button>
-                </div>
+                </form>
 
                 <div className="mt-6 text-center">
-                    <Link 
-                        to="/esqueci-senha" 
-                        className="block text-[var(--laranja-principal)] mb-2 cursor-pointer hover:underline"
-                    >
+                    <Link to="/esqueci-senha" title="Esqueceu a senha?" className="block text-[var(--laranja-principal)] mb-2 cursor-pointer hover:underline">
                         Esqueceu a senha?
                     </Link>
 
                     <p className="text-gray-400">
                         Ainda não tem conta?{" "}
-                        <Link 
-                            to={
-                                role === "proprietario"
-                                    ? "/cadastro-proprietario"
-                                    : "/cadastro-construtor"
-                            }
-                            className="text-[var(--laranja-principal)]"
-                        >
+                        <Link to={role === "proprietario" ? "/cadastro-proprietario" : "/cadastro-construtor"} className="text-[var(--laranja-principal)]">
                             Cadastre-se
                         </Link>
                     </p>
