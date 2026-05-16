@@ -6,7 +6,6 @@ import { buscarDadosDashboard } from "../services/homeService";
 
 function getClasseStatus(status) {
     const statusLimpo = status?.toString().trim().toLowerCase() || "";
-    // Ajuste leve para aceitar o que vem do banco ou o que o service formatou
     switch(status) {
         case "Em construção":
             return "td-construcao";
@@ -19,8 +18,7 @@ function getClasseStatus(status) {
     }
 }
 
-function Home() {
-    ///Substituição dos mocks pelos estados
+function Home({ onLogout }) {
     const [manuais, setManuais] = useState([]);
     const [projetos, setProjetos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -37,9 +35,9 @@ function Home() {
 
     return (
         <div className="h-svh flex flex-col overflow-hidden">
-            <MenuInicial />
+            <MenuInicial/>
             <div className="flex flex-1 overflow-hidden">
-                <BarraLateral />
+                <BarraLateral onLogout={onLogout}/>
                 <main className="w-full overflow-y-auto px-10 py-8">
                     
                     <h3 className="page-title pl-2">Manuais recentes</h3>
@@ -58,7 +56,6 @@ function Home() {
                                 </tr>
                             </thead>
                             <tbody className="">
-                                {/* 'manuais' do estado em vez do mock */ }
                                 {manuais.length > 0 ? (
                                     manuais.map((manual) => (
                                         <tr key={manual.id}>
@@ -102,7 +99,6 @@ function Home() {
                                 </tr>
                             </thead>
                             <tbody className="">
-                                {/* 'projetos' do estado em vez do Mock */}
                                 {projetos.length > 0 ? (
                                     projetos.map((projeto) => (
                                         <tr key={projeto.id}>

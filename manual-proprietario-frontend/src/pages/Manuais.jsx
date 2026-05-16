@@ -41,7 +41,7 @@ function formatarData(dataString) {
 
 
 
-function Manuais() {
+function Manuais({ onLogout }) {
 
 	const [projetos, setProjetos] = useState([]); 
 
@@ -77,7 +77,7 @@ function Manuais() {
 		<div className="h-svh flex flex-col overflow-hidden">
 			<MenuInicial />
 			<div className="flex flex-1 overflow-hidden">
-				<BarraLateral />
+				<BarraLateral onLogout={onLogout}/>
 				<main className="w-full overflow-y-auto px-10 py-8">
 
 					<h3 className="page-title pl-2">Manuais Recentes</h3>

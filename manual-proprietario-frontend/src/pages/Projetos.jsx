@@ -18,7 +18,7 @@ function getClasseStatus(status) {
     }
 }
 
-function Projetos() {
+function Projetos({ onLogout }) {
     const [projetos, setProjetos] = useState([]); 
     const [carregando, setCarregando] = useState(true);
 
@@ -41,7 +41,7 @@ function Projetos() {
         <div className="h-svh flex flex-col overflow-hidden">
             <MenuInicial />
             <div className="flex flex-1 overflow-hidden">
-                <BarraLateral />
+                <BarraLateral onLogout={onLogout}/>
                 <main className="w-full overflow-y-auto px-10 py-8">
                     <div className="flex items-center text-center justify-between">
                         <h3 className="page-title pl-2">Projetos recentes</h3>

@@ -36,6 +36,11 @@ function App() {
   const handleLogin = (userData) => {
     setUser(userData);
   }
+  
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+  };
 
   return (
     <BrowserRouter>
@@ -58,32 +63,32 @@ function App() {
         {/* Rotas Protegidas */}
         <Route 
           path="/PROPRIETARIO" 
-          element={user ? <Home /> : <Navigate to="/login" />} 
+          element={user ? <Home onLogout={handleLogout}/> : <Navigate to="/login" />} 
         />
         <Route 
           path="/CONSTRUTOR" 
-          element={user ? <Home /> : <Navigate to="/login" />} 
+          element={user ? <Home onLogout={handleLogout}/> : <Navigate to="/login" />} 
         />
 
         <Route
           path="/manuais"
-          element={user ? <Manuais /> : <Navigate to="/login" />}
+          element={user ? <Manuais onLogout={handleLogout}/> : <Navigate to="/login" />}
         />
         <Route
           path="/projetos"
-          element={user ? <Projetos /> : <Navigate to="/login" />}
+          element={user ? <Projetos onLogout={handleLogout}/> : <Navigate to="/login" />}
         />
         <Route
           path="/cadastro-projeto"
-          element={user ? <CadastroProjeto /> : <Navigate to="/login" />}
+          element={user ? <CadastroProjeto onLogout={handleLogout}/> : <Navigate to="/login" />}
         />
         <Route
           path="/cadastro-projeto2"
-          element={user ? <CadastroProjeto2 /> : <Navigate to="/login" />}
+          element={user ? <CadastroProjeto2 onLogout={handleLogout}/> : <Navigate to="/login" />}
         />
         <Route
           path="/cadastro-projeto3" 
-          element={user ? <CadastroProjeto3 /> : <Navigate to="/login" />}
+          element={user ? <CadastroProjeto3 onLogout={handleLogout}/> : <Navigate to="/login" />}
         />
 
         {/* Rotas não encontradas */}
