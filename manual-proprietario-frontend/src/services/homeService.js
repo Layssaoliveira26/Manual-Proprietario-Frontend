@@ -7,9 +7,15 @@ const statusTraduzido = {
     "PENDENTE": "Pendente"
 };
 
-export const buscarDadosDashboard = async () => {
+export const buscarDadosDashboard = async (searchTerm = "") => {
     try {
-        const resposta = await api.get('/projects');
+        const params = {};
+
+        if (searchTerm) {
+            params.search = searchTerm;
+        }
+
+        const resposta = await api.get('/projects', { params });
         const projetosBrutos = resposta.data?.data || [];
 
         const projetosFormatados = projetosBrutos.map(proj => ({

@@ -1,8 +1,8 @@
 import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
 import { MdOutlineEngineering } from "react-icons/md";
-import { manuaisMock } from "../mocks/manuais";
 import { useEffect, useState } from "react";
+import api from "../services/api";
 
 function getClasseStatus(status) {
 	switch (status) {
@@ -44,38 +44,50 @@ function formatarData(dataString) {
 function Manuais({ onLogout }) {
 
 	const [projetos, setProjetos] = useState([]); 
+	const [searchTerm, setSearchTerm] = useState("");
+	const [carregando, setCarregando] = useState(true);
 
     useEffect(() => {
+		let ativo = true;
+
         const fetchProjects = async () => {
             try {
-                const token = localStorage.getItem('token');
-                
-                const response = await fetch('http://localhost:3000/projects', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+				setCarregando(true);
 
-                const result = await response.json();
+				const response = await api.get('/projects', {
+					params: searchTerm ? { search: searchTerm } : {},
+				});
 
-                if (result.status === 'success' && result.data) {
-                    setProjetos(result.data); 
+				if (!ativo) {
+					return;
+				}
+
+				const result = response.data;
+
+				if (result.status === 'success' && result.data) {
+					setProjetos(result.data);
                 }
 
             } catch (err) {
                 console.error('Error fetching projects:', err);
+			} finally {
+				if (ativo) {
+					setCarregando(false);
+				}
             }
         };
 
         fetchProjects();
-    }, []);
+
+		return () => {
+			ativo = false;
+		};
+	}, [searchTerm]);
 
 
 	return (
 		<div className="h-svh flex flex-col overflow-hidden">
-			<MenuInicial />
+			<MenuInicial onSearchChange={setSearchTerm} />
 			<div className="flex flex-1 overflow-hidden">
 				<BarraLateral onLogout={onLogout}/>
 				<main className="w-full overflow-y-auto px-10 py-8">
@@ -99,7 +111,13 @@ function Manuais({ onLogout }) {
 							</thead>
 							<tbody>
 
-								{projetos && projetos.length > 0 ? (
+								{carregando ? (
+									<tr>
+										<td colSpan={4} className="py-10 px-6 text-center">
+											Carregando manuais...
+										</td>
+									</tr>
+								) : projetos && projetos.length > 0 ? (
 									projetos.map((projetos) => (
 										<tr key={projetos.id}>
 											<td className="py-5 px-6">{projetos.nomeProjeto}</td>
