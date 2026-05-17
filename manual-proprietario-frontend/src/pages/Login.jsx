@@ -12,10 +12,10 @@ function Login({ onLogin }) {
 
     const navigate = useNavigate();
 
-    const logar = async () => {
+    const logar = async (e) => {
+        e.preventDefault();
         setErrorMessage("");
 
-        // Validação local do Front-end (Layssa)
         const erro = ValidateLoginFields(email, password);
         if (erro) {
             setErrorMessage(erro);
@@ -24,35 +24,26 @@ function Login({ onLogin }) {
 
         try {
             const profile = role.toUpperCase(); 
-
             const payload = {
-                email: email,
-                password: password,
-                profile: profile
+                email: email.trim().toLowerCase(),
+                password,
+                profile,
+                ...(profile === "CONSTRUTOR" && { crea }),
             };
 
-            if (profile === "CONSTRUTOR") {
-                payload.crea = crea;
-            }
+            const response = await login(payload);
+            const token = response?.data?.user?.token;
 
-            // Chamada para a sua integração
-            const data = await login(payload);
-
-            const token = data.data?.user?.token;
             if (token) {
                 localStorage.setItem("token", token);
+                onLogin({ email, role: profile }); 
+                navigate(`/${profile}`);
+            } else {
+                setErrorMessage("Erro: Estrutura de resposta inválida.");
             }
 
-            if (onLogin) {
-                onLogin({ email, role });
-            }
-
-            navigate(`/${role}`);
         } catch (error) {
-            // Unindo o erro do Back com o estado de erro do Front
-            const mensagemDoBack = error.response?.data?.message || "E-mail ou senha inválidos.";
-            setErrorMessage(mensagemDoBack);
-            console.error("Erro no login:", error);
+            setErrorMessage(error.response?.data?.message ?? "Erro ao conectar com o servidor.");
         }
     };
 
@@ -74,9 +65,7 @@ function Login({ onLogin }) {
                 <div className="flex bg-[var(--cor-form)] p-1 justify-center rounded-sm">
                     <button 
                         className={`py-2 px-8 rounded-sm font-medium transition ${
-                            role === "proprietario"
-                                ? "btn-laranja text-white"
-                                : "btn-branco text-[var(--laranja-principal)]"
+                            role === "proprietario" ? "btn-laranja text-white" : "btn-branco text-[var(--laranja-principal)]"
                         }`}
                         onClick={() => setRole("proprietario")}
                         type="button"
@@ -86,9 +75,7 @@ function Login({ onLogin }) {
 
                     <button 
                         className={`py-2 px-8 rounded-sm ml-1 font-medium transition ${
-                            role === "construtor"
-                                ? "btn-laranja text-white"
-                                : "btn-branco text-[var(--laranja-principal)]"
+                            role === "construtor" ? "btn-laranja text-white" : "btn-branco text-[var(--laranja-principal)]"
                         }`}
                         onClick={() => setRole("construtor")}
                         type="button"
@@ -97,9 +84,8 @@ function Login({ onLogin }) {
                     </button>
                 </div>
 
-                <div className="flex flex-col items-center mt-5">
+                <form onSubmit={logar} className="flex flex-col items-center mt-5 w-full">
 
-                    {/* Exibição da mensagem de erro da Layssa */}
                     {errorMessage && (
                         <p className="text-red-500 text-sm mb-4 font-bold text-center">
                             {errorMessage}
@@ -134,32 +120,21 @@ function Login({ onLogin }) {
                     />
 
                     <button 
-                        type="button"
+                        type="submit"
                         className="btn-telas-iniciais mt-2"
-                        onClick={logar}
                     >
                         Entrar
                     </button>
-                </div>
+                </form>
 
                 <div className="mt-6 text-center">
-                    <Link 
-                        to="/esqueci-senha" 
-                        className="block text-[var(--laranja-principal)] mb-2 cursor-pointer hover:underline"
-                    >
+                    <Link to="/esqueci-senha" title="Esqueceu a senha?" className="block text-[var(--laranja-principal)] mb-2 cursor-pointer hover:underline">
                         Esqueceu a senha?
                     </Link>
 
                     <p className="text-gray-400">
                         Ainda não tem conta?{" "}
-                        <Link 
-                            to={
-                                role === "proprietario"
-                                    ? "/cadastro-proprietario"
-                                    : "/cadastro-construtor"
-                            }
-                            className="text-[var(--laranja-principal)]"
-                        >
+                        <Link to={role === "proprietario" ? "/cadastro-proprietario" : "/cadastro-construtor"} className="text-[var(--laranja-principal)]">
                             Cadastre-se
                         </Link>
                     </p>

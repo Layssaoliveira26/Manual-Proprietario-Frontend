@@ -1,38 +1,51 @@
+import { useState, useEffect } from "react";
 import BarraLateral from "../components/BarraLateral"
 import MenuInicial from "../components/MenuInicial"
 import { MdOutlineEngineering } from "react-icons/md";
-import { manuaisMock } from "../mocks/manuais";
-import { projetosMock } from "../mocks/projetos";
+import { buscarDadosDashboard } from "../services/homeService";
 
 function getClasseStatus(status) {
+    const statusLimpo = status?.toString().trim().toLowerCase() || "";
     switch(status) {
-        case "Entregue":
-            return "td-entregue";
         case "Em construção":
             return "td-construcao";
+        case "Entregue":
+            return "td-entregue";
         case "Desativado":
             return "td-desativado";
         default:
-            return undefined;
+            return "td-pendente";
     }
 }
 
+function Home({ onLogout }) {
+    const [manuais, setManuais] = useState([]);
+    const [projetos, setProjetos] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-function Home() {
+    useEffect(() => {
+        const carregar = async () => {
+            const dados = await buscarDadosDashboard();
+            setManuais(dados.manuais);
+            setProjetos(dados.projetos);
+            setLoading(false);
+        };
+        carregar();
+    }, []);
+
     return (
         <div className="h-svh flex flex-col overflow-hidden">
-            <MenuInicial />
+            <MenuInicial/>
             <div className="flex flex-1 overflow-hidden">
-                <BarraLateral />
+                <BarraLateral onLogout={onLogout}/>
                 <main className="w-full overflow-y-auto px-10 py-8">
+                    
                     <h3 className="page-title pl-2">Manuais recentes</h3>
-                        <div className="w-full overflow-x-auto overflow-y-visible p-2 mb-6">
+                    <div className="w-full overflow-x-auto overflow-y-visible p-2 mb-6">
                         <table className="tb-manuais w-full">
                             <colgroup>
-                                <col className="w-1/4" />
-                                <col className="w-1/4" />
-                                <col className="w-1/4" />
-                                <col className="w-1/4" />
+                                <col className="w-1/4" /><col className="w-1/4" />
+                                <col className="w-1/4" /><col className="w-1/4" />
                             </colgroup>
                             <thead>
                                 <tr className="cabecalho bg-(--laranja-principal) text-white text-sm text-left rounded-2xl font-semibold">
@@ -43,8 +56,8 @@ function Home() {
                                 </tr>
                             </thead>
                             <tbody className="">
-                                {manuaisMock.length > 0 ? (
-                                    manuaisMock.map((manual) => (
+                                {manuais.length > 0 ? (
+                                    manuais.map((manual) => (
                                         <tr key={manual.id}>
                                             <td className="py-5 px-6">{manual.manual}</td>
                                             <td className="py-5 px-6">{manual.responsavel}</td>
@@ -61,25 +74,21 @@ function Home() {
                                         <td colSpan={4} className="py-10 px-6">
                                             <div className="w-full flex flex-col items-center text-center mt-14 mb-14">
                                                 <MdOutlineEngineering className="w-40 h-40 text-[#455a641e]" />
-                                                <h4>Você não possui nenhum manual</h4>
+                                                <h4>{loading ? "Carregando..." : "Você não possui nenhum manual"}</h4>
                                             </div>
                                         </td>
                                     </tr>
                                 )}
                             </tbody>
                         </table>
-
-                        
                     </div>
 
                     <h3 className="page-title pl-2">Projetos recentes</h3>
-                        <div className="w-full overflow-x-auto overflow-y-visible p-2">
+                    <div className="w-full overflow-x-auto overflow-y-visible p-2">
                         <table className="tb-manuais w-full">
                             <colgroup>
-                                <col className="w-1/4" />
-                                <col className="w-1/4" />
-                                <col className="w-1/4" />
-                                <col className="w-1/4" />
+                                <col className="w-1/4" /><col className="w-1/4" />
+                                <col className="w-1/4" /><col className="w-1/4" />
                             </colgroup>
                             <thead>
                                 <tr className="cabecalho bg-(--laranja-principal) text-white text-sm text-left rounded-2xl font-semibold">
@@ -90,8 +99,8 @@ function Home() {
                                 </tr>
                             </thead>
                             <tbody className="">
-                                {projetosMock.length > 0 ? (
-                                    projetosMock.map((projeto) => (
+                                {projetos.length > 0 ? (
+                                    projetos.map((projeto) => (
                                         <tr key={projeto.id}>
                                             <td className="py-5 px-6">{projeto.projeto}</td>
                                             <td className="py-5 px-6">{projeto.responsavel}</td>
@@ -108,15 +117,13 @@ function Home() {
                                         <td colSpan={4} className="py-10 px-6">
                                             <div className="w-full flex flex-col items-center text-center mt-14 mb-14">
                                                 <MdOutlineEngineering className="w-40 h-40 text-[#455a641e]" />
-                                                <h4>Você não possui nenhum projeto</h4>
+                                                <h4>{loading ? "Carregando..." : "Você não possui nenhum projeto"}</h4>
                                             </div>
                                         </td>
                                     </tr>
                                 )}
                             </tbody>
                         </table>
-
-                        
                     </div>
                 </main>
             </div>
