@@ -46,7 +46,10 @@ function CadastroProjeto() {
         setErrors(novosErros);
 
         const existeErro = Object.values(novosErros).some(msg => msg !== "");
-        if (existeErro) return; 
+        if (existeErro) {
+            return;
+        }
+             
 
         // back
         try {
