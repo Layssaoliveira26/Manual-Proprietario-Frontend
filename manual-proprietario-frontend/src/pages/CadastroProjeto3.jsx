@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
 import { LuUpload } from "react-icons/lu";
+import { IoDocumentTextOutline } from "react-icons/io5";
 import BarraNumeros from "../components/BarraNumeros";
 import api from "../services/api"; 
 import { ValidateFileRequired, ValidateFileType, ValidateFileSize } from "../utils/validations";
@@ -105,7 +106,7 @@ function CadastroProjeto3() {
                             <div className="flex justify-center text-center gap-6">
                                 {projetos.map((proj) => (
                                     <div key={proj.id} className="flex flex-col w-full max-w-1/4 gap-2">
-                                        <label htmlFor={proj.id} className="text-[var(--laranja-principal)] font-medium text-sm">
+                                        <label htmlFor={proj.id} className="text-(--laranja-principal) font-medium text-sm">
                                             {proj.label}
                                         </label>
                                         <label
@@ -116,8 +117,9 @@ function CadastroProjeto3() {
                                         >
                                             {arquivos[proj.id] ? (
                                                 <>
-                                                    <LuUpload className="text-[var(--laranja-principal)] text-xl" />
-                                                    <span className="text-[10px] text-[var(--laranja-principal)] font-medium px-2 truncate w-full text-center">
+                                                    <IoDocumentTextOutline className="text-(--laranja-principal) text-xl" />
+
+                                                    <span className="text-[10px] text-(--laranja-principal) font-medium px-2 truncate w-full text-center">
                                                         {arquivos[proj.id].name}
                                                     </span>
                                                 </>

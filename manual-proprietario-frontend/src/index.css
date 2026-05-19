@@ -79,6 +79,11 @@ h6:hover {
     border-right-color: #004080;
 } 
 
+h6:has(a.active) {
+    background-color: var(--cor-fundo);
+    border-right: 4px solid #004080;
+}
+
 .h6-sair {
     color: var(--laranja-principal);
 }
