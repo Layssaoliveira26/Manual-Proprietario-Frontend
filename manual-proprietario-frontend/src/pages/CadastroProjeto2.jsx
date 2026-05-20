@@ -11,7 +11,6 @@ function CadastroProjeto2() {
     const navigate = useNavigate();
     const location = useLocation();
     
-    // Captura o ID que veio da Tela 1. Se o Victor recarregar a página (F5), ele perde o state.
     const projectId = location.state?.projectId;
 
     const [funcionarios, setFuncionarios] = useState([{ nome: "", cargo: "Pedreiro" }]);
@@ -27,7 +26,6 @@ function CadastroProjeto2() {
         values[index][event.target.name] = event.target.value;
         setFuncionarios(values);
         
-        // Limpa o erro da linha enquanto digita
         if (errors[index]) {
             const novosErros = [...errors];
             novosErros[index].nome = "";
