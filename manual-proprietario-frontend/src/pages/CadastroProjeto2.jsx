@@ -4,16 +4,15 @@ import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
 import BarraNumeros from "../components/BarraNumeros";
 import { LuTrash2 } from "react-icons/lu";
-import api from "../services/api"; 
 import { ValidateRequired, ValidateFullName, ValidateMinLength } from "../utils/validations";
 
 function CadastroProjeto2() {
     const navigate = useNavigate();
     const location = useLocation();
     
-    const projectId = location.state?.projectId;
+    const formData = location.state?.formData;
 
-    const [funcionarios, setFuncionarios] = useState([{ nome: "", cargo: "Pedreiro" }]);
+    const [funcionarios, setFuncionarios] = useState(location.state?.funcionarios || [{ nome: "", cargo: "Pedreiro" }]);
     const [errors, setErrors] = useState([]);
 
     const adicionarCampos = (e) => {
@@ -58,27 +57,7 @@ function CadastroProjeto2() {
         const temErro = errosValidados.some(erro => erro.nome !== "");
         if (temErro) return;
 
-        if (!projectId) {
-            alert("ID do projeto não encontrado. Volte ao Passo 1.");
-            return;
-        }
-
-        try {
-            const chamadas = funcionarios.map(func => 
-                api.post(`/projects/${projectId}/employees`, {
-                    nomeFunc: func.nome,
-                    cargo: func.cargo
-                })
-            );
-
-            await Promise.all(chamadas);
-
-            navigate("/cadastro-projeto3", { state: { projectId } });
-
-        } catch (error) {
-            console.error("Erro ao salvar funcionários:", error);
-            alert(error.response?.data?.message || "Erro ao salvar equipe.");
-        }
+        navigate("/cadastro-projeto3", { state: { formData, funcionarios } });
     };
 
     return (
@@ -92,10 +71,10 @@ function CadastroProjeto2() {
                     
                     <div className="flex flex-col justify-center mt-6">
                         <form>
-                            {!projectId && (
+                            {!formData && (
                                 <div className="bg-amber-50 p-4 rounded-md mb-6 border border-amber-200">
                                     <p className="text-amber-800 text-sm">
-                                        ⚠️ <strong>Atenção:</strong> Você está sem o ID do projeto. 
+                                        ⚠️ <strong>Atenção:</strong> Você está sem os dados do projeto. 
                                         Se recarregou a página, volte ao <Link to="/cadastro-projeto" className="underline">Passo 1</Link>.
                                     </p>
                                 </div>
@@ -154,7 +133,7 @@ function CadastroProjeto2() {
                             </div>
 
                             <div className="flex justify-center items-center gap-4 mt-16">
-                                <Link to="/cadastro-projeto" className="w-40 py-3 text-center text-[var(--laranja-principal)] border-[var(--laranja-principal)] border-2 rounded-md font-semibold">
+                                <Link to="/cadastro-projeto" state={{ formData, funcionarios }} className="w-40 py-3 text-center text-[var(--laranja-principal)] border-[var(--laranja-principal)] border-2 rounded-md font-semibold">
                                     Anterior
                                 </Link>
                                 <button 

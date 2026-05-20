@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; 
+import { useNavigate, Link, useLocation } from "react-router-dom"; 
 import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
 import BarraNumeros from "../components/BarraNumeros";
 import { ValidateRequired, ValidateProjectDates, ValidateART } from "../utils/validations";
-import api from "../services/api";
 
 function CadastroProjeto() {
+    const location = useLocation();
     const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState(location.state?.formData || {
         nomeProj: "",
         descProj: "",
         rua: "",
@@ -50,53 +50,7 @@ function CadastroProjeto() {
             return;
         }
              
-
-        // back
-        try {
-            const formatarParaISO = (dataStr) => {
-                if (!dataStr || dataStr.trim() === "") return null;
-                    const data = new Date(dataStr);
-                
-                // Verifica se a data é válida antes de converter para ISO
-                if (isNaN(data.getTime())) {
-                    console.error("Data inválida detectada:", dataStr);
-                    return null;
-                }
-                
-                return data.toISOString();
-            };
-
-            const dadosParaEnviar = {
-                nomeProjeto: formData.nomeProj,
-                descricao: formData.descProj || undefined,
-                rua: formData.rua,
-                bairro: formData.bairro,
-                numero: String(formData.numero), 
-                complemento: formData.complemento || undefined,
-                tipoConstrucao: formData.tipoConst,
-                dataInicio: formatarParaISO(formData.dataIni),
-                art: formData.numArt || undefined,
-                // Só envia dataConclusao se houver valor, para não bugar o Zod
-                ...(formData.dataConc && { dataConclusao: formatarParaISO(formData.dataConc) })
-            };
-
-            const response = await api.post("/projects", dadosParaEnviar);
-
-            const projectId = response.data.data.id;
-
-            navigate("/cadastro-projeto2", { state: { projectId } });
-
-        } catch (error) {
-            if (error.response?.status === 400) {
-                // Erros de validação do Zod que passaram pelo front
-                console.error("Erro Zod:", error.response.data.errors);
-                alert("Erro nos dados: " + error.response.data.errors[0].message);
-            } else {
-                console.error("DEBUG COMPLETO:", error);
-                console.error("Erro na API:", error.response?.data?.message);
-                alert(error.response?.data?.message || "Erro ao conectar com o servidor.");
-            }
-        }
+        navigate("/cadastro-projeto2", { state: { formData, funcionarios: location.state?.funcionarios } });
     };
     return (
         <div className="h-svh flex flex-col overflow-hidden">

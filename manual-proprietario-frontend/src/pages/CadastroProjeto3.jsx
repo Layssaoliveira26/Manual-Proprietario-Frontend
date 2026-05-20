@@ -12,8 +12,9 @@ function CadastroProjeto3() {
     const navigate = useNavigate();
     const location = useLocation();
     
-    // Captura o ID do projeto que veio das telas anteriores
-    const projectId = location.state?.projectId;
+    // Captura as informações do projeto que veio das telas anteriores
+    const formData = location.state?.formData;
+    const funcionarios = location.state?.funcionarios;
 
     const [arquivos, setArquivos] = useState({});
     const [errors, setErrors] = useState({}); 
@@ -53,35 +54,60 @@ function CadastroProjeto3() {
         const temErro = Object.keys(novosErros).length > 0;
         if (temErro) return;
 
-        if (!projectId) {
-            alert("ID do projeto não encontrado. Por favor, reinicie o cadastro.");
+        if (!formData) {
+            alert("Dados do projeto não encontrados. Por favor, reinicie o cadastro.");
             return;
         }
 
         try {
-            const uploadPromises = Object.keys(arquivos).map(async (key) => {
-                const formData = new FormData();
-                
+            // 1. Criação o projeto
+            const formatarParaISO = (dataStr) => {
+                if (!dataStr || dataStr.trim() === "") return null;
+                const data = new Date(dataStr);
+                if (isNaN(data.getTime())) return null;
+                return data.toISOString();
+            };
+
+            const dadosParaEnviar = {
+                nomeProjeto: formData.nomeProj,
+                descricao: formData.descProj || undefined,
+                rua: formData.rua,
+                bairro: formData.bairro,
+                numero: String(formData.numero),
+                complemento: formData.complemento || undefined,
+                tipoConstrucao: formData.tipoConst,
+                dataInicio: formatarParaISO(formData.dataIni),
+                art: formData.numArt || undefined,
+                ...(formData.dataConc && { dataConclusao: formatarParaISO(formData.dataConc) })
+            };
+
+            const response = await api.post("/projects", dadosParaEnviar);
+            const projectId = response.data.data.id;
+
+            // 2. Cadastrar funcionários
+            await Promise.all(funcionarios.map(func =>
+                api.post(`/projects/${projectId}/employees`, {
+                    nomeFunc: func.nome,
+                    cargo: func.cargo
+                })
+            ));
+
+            // 3. Upload dos documentos
+            await Promise.all(Object.keys(arquivos).map(async (key) => {
+                const form = new FormData();
                 const labelPlanta = projetos.find(p => p.id === key)?.label || key;
-                
-                formData.append("tipoPlanta", labelPlanta);
-                formData.append("file", arquivos[key]);
-
-                return api.post(`/projects/${projectId}/documents`, formData, {
-                    headers: {
-                        "Content-Type": "multipart/form-data"
-                    }
+                form.append("tipoPlanta", labelPlanta);
+                form.append("file", arquivos[key]);
+                return api.post(`/projects/${projectId}/documents`, form, {
+                    headers: { "Content-Type": "multipart/form-data" }
                 });
-            });
+            }));
 
-            await Promise.all(uploadPromises);
-
-            alert("Projeto e documentos cadastrados com sucesso!");
-            navigate("/projetos"); 
-
+            alert("Projeto cadastrado com sucesso!");
+            navigate("/projetos");
         } catch (error) {
-            console.error("Erro no upload dos documentos:", error);
-            alert(error.response?.data?.message || "Erro ao enviar os arquivos para o servidor.");
+            console.error("Erro ao finalizar cadastro:", error);
+            alert(error.response?.data?.message || "Erro ao cadastrar projeto.");
         }
     };
 
@@ -94,9 +120,9 @@ function CadastroProjeto3() {
                     <h3 className="page-title pl-2">Configurar Projeto</h3>
                     <BarraNumeros />
                     
-                    {!projectId && (
+                    {!formData && (
                         <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6 border border-red-200 text-sm">
-                            ⚠️ O ID do projeto não foi detectado. Se você recarregou a página, 
+                            ⚠️ As informações do projeto não foram detectadas. Se você recarregou a página, 
                             precisará voltar ao <Link to="/cadastro-projeto" className="underline font-bold">Início</Link>.
                         </div>
                     )}
@@ -134,7 +160,7 @@ function CadastroProjeto3() {
                                                 id={proj.id}
                                                 className="hidden"
                                                 onChange={(e) => atualizarArquivo(proj.id, e)}
-                                                disabled={!projectId}
+                                                disabled={!formData}
                                             />
                                         </label>
                                         {errors[proj.id] && (
@@ -148,16 +174,16 @@ function CadastroProjeto3() {
                             <div className="flex justify-center items-center gap-3 mt-40">
                                 <Link
                                     to="/cadastro-projeto2"
-                                    state={{ projectId }} 
+                                    state={{ formData, funcionarios }}
                                     className="w-full max-w-37.5 py-3 px-4 text-center text-(--laranja-principal) border-(--laranja-principal) border-2 rounded-md font-medium"
                                 >
                                     Anterior
                                 </Link>
                                 <button 
                                     type="submit" 
-                                    disabled={!projectId}
+                                    disabled={!formData}
                                     className={`w-full max-w-37.5 py-3 px-4 text-white rounded-md font-medium transition-all ${
-                                        !projectId ? 'bg-gray-300 cursor-not-allowed' : 'bg-(--laranja-principal) hover:brightness-95'
+                                        !formData ? 'bg-gray-300 cursor-not-allowed' : 'bg-(--laranja-principal) hover:brightness-95'
                                     }`}
                                 >
                                     Finalizar Cadastro
