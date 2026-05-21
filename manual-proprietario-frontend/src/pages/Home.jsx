@@ -5,7 +5,6 @@ import { MdOutlineEngineering } from "react-icons/md";
 import { buscarDadosDashboard } from "../services/homeService";
 
 function getClasseStatus(status) {
-    const statusLimpo = status?.toString().trim().toLowerCase() || "";
     switch(status) {
         case "Em construção":
             return "td-construcao";
@@ -22,20 +21,41 @@ function Home({ onLogout }) {
     const [manuais, setManuais] = useState([]);
     const [projetos, setProjetos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
+        let ativo = true;
+
         const carregar = async () => {
-            const dados = await buscarDadosDashboard();
-            setManuais(dados.manuais);
-            setProjetos(dados.projetos);
-            setLoading(false);
+            try {
+                setLoading(true);
+
+                const dados = await buscarDadosDashboard(searchTerm);
+                if (!ativo) {
+                    return;
+                }
+
+                setManuais(dados.manuais);
+                setProjetos(dados.projetos);
+            } catch (error) {
+                console.error("Erro ao carregar dashboard:", error);
+            } finally {
+                if (ativo) {
+                    setLoading(false);
+                }
+            }
         };
+
         carregar();
-    }, []);
+
+        return () => {
+            ativo = false;
+        };
+    }, [searchTerm]);
 
     return (
         <div className="h-svh flex flex-col overflow-hidden">
-            <MenuInicial/>
+            <MenuInicial onSearchChange={setSearchTerm} />
             <div className="flex flex-1 overflow-hidden">
                 <BarraLateral onLogout={onLogout}/>
                 <main className="w-full overflow-y-auto px-10 py-8">

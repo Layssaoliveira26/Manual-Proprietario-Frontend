@@ -21,25 +21,41 @@ function getClasseStatus(status) {
 function Projetos({ onLogout }) {
     const [projetos, setProjetos] = useState([]); 
     const [carregando, setCarregando] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
+        let ativo = true;
+
         const carregarDados = async () => {
             try {
-                const dados = await buscarDadosDashboard();
+                setCarregando(true);
+
+                const dados = await buscarDadosDashboard(searchTerm);
+
+                if (!ativo) {
+                    return;
+                }
+
                 setProjetos(dados.projetos);
             } catch (error) {
                 console.error("Erro ao carregar projetos:", error);
             } finally {
-                setCarregando(false);
+                if (ativo) {
+                    setCarregando(false);
+                }
             }
         };
 
         carregarDados();
-    }, []);
+
+        return () => {
+            ativo = false;
+        };
+    }, [searchTerm]);
 
     return (
         <div className="h-svh flex flex-col overflow-hidden">
-            <MenuInicial />
+            <MenuInicial onSearchChange={setSearchTerm} />
             <div className="flex flex-1 overflow-hidden">
                 <BarraLateral onLogout={onLogout}/>
                 <main className="w-full overflow-y-auto px-10 py-8">

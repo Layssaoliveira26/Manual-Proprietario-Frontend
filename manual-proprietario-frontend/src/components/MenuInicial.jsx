@@ -1,6 +1,7 @@
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-function MenuInicial() {
+function MenuInicial({ onSearchChange }) {
     const localizacao = useLocation();
     const ocultarNasRotasDeCadastro = [
         "/cadastro-projeto",
@@ -8,6 +9,20 @@ function MenuInicial() {
         "/cadastro-projeto3",
     ].includes(localizacao.pathname);
     const mostrarComponente = !ocultarNasRotasDeCadastro;
+
+    const [searchTerm, setSearchTerm] = useState("");
+
+    useEffect(() => {
+        if (!mostrarComponente) return;
+
+        const timeoutId = window.setTimeout(() => {
+            if (typeof onSearchChange === "function") {
+                onSearchChange(searchTerm.trim());
+            }
+        }, 350);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [searchTerm, onSearchChange, mostrarComponente]);
 
     return (
         <div className="flex items-center justify-between px-10 py-6 bg-white">
@@ -23,6 +38,8 @@ function MenuInicial() {
                             <input
                                 type="text"
                                 placeholder="Pesquisar Projetos ou Manuais"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                                 className="min-w-md py-3.25 px-4 border border-[#dcdcdc] rounded-r-md text-sm text-[#333]"
                             />
                             <img
