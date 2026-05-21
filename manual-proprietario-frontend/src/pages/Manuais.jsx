@@ -3,6 +3,7 @@ import MenuInicial from "../components/MenuInicial";
 import { MdOutlineEngineering } from "react-icons/md";
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 function getClasseStatus(status) {
 	switch (status) {
@@ -46,7 +47,8 @@ function Manuais({ onLogout }) {
 	const [projetos, setProjetos] = useState([]); 
 	const [searchTerm, setSearchTerm] = useState("");
 	const [carregando, setCarregando] = useState(true);
-
+	const navigate = useNavigate();
+	
     useEffect(() => {
 		let ativo = true;
 
@@ -119,7 +121,11 @@ function Manuais({ onLogout }) {
 									</tr>
 								) : projetos && projetos.length > 0 ? (
 									projetos.map((projetos) => (
-										<tr key={projetos.id}>
+										<tr 
+											key={projetos.id}
+											className="cursor-pointer hover:bg-gray-50 transition-colors"
+											onClick={() => navigate(`/manuais/${projetos.id}`)}
+										>
 											<td className="py-5 px-6">{projetos.nomeProjeto}</td>
 											<td className="py-5 px-6">{projetos.responsavel}</td>
 											<td className="py-5 px-6">
