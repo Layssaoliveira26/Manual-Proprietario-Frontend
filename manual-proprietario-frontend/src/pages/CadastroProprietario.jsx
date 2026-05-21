@@ -13,6 +13,7 @@ function CadastroProprietario() {
     const [senha, setSenha] = useState("");
     const [confirmSenha, setConfirmSenha] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [errorField, setErrorField] = useState("");
     const navigate = useNavigate();
 
     const cadastrarProp = async () => {
@@ -20,19 +21,19 @@ function CadastroProprietario() {
         
         // Validações da Layssa
         const erroNome = ValidateFullName(nome);
-        if (erroNome) return setErrorMessage(erroNome);
+        if (erroNome) { setErrorField("nome"); return setErrorMessage(erroNome); }
         
         const erroEmail = ValidateLoginFields(email, "placeholder");
-        if (erroEmail && erroEmail.includes("Email")) return setErrorMessage(erroEmail);
+        if (erroEmail && erroEmail.includes("Email")) { setErrorField("email"); return setErrorMessage(erroEmail) };
         
         const erroCpf = ValidateCPF(cpf);
-        if (erroCpf) return setErrorMessage(erroCpf);
+        if (erroCpf) { setErrorField("cpf"); return setErrorMessage(erroCpf) };
         
         const erroSenha = ValidateStrongPassword(senha);
-        if (erroSenha) return setErrorMessage(erroSenha);
+        if (erroSenha) { setErrorField("senha"); return setErrorMessage(erroSenha) };
         
         const erroMatch = ValidatePasswordMatch(senha, confirmSenha);
-        if (erroMatch) return setErrorMessage(erroMatch);
+        if (erroMatch) { setErrorField("confirmSenha"); return setErrorMessage(erroMatch) };
 
         try {
             // Unimos a sua lógica de payload com os dados validados
@@ -49,8 +50,15 @@ function CadastroProprietario() {
             alert("Cadastro realizado com sucesso!");
             navigate("/login");
         } catch(error) {
-            const msg = error.response?.data?.message || "Erro ao realizar cadastro.";
-            setErrorMessage(msg);
+            const backErrors = error.response?.data?.errors;
+
+            if (backErrors && Object.keys(backErrors).length > 0) {
+                setErrorField(Object.keys(backErrors)[0]);
+                setErrorMessage(Object.values(backErrors)[0]);
+            } else {
+                setErrorMessage(error.response?.data?.message || "Erro ao realizar cadastro.");
+            }
+
             console.error("Erro no cadastro", error);
         }
     }
@@ -76,20 +84,11 @@ function CadastroProprietario() {
                 </div>
 
                 <div className="campos-form">
-                    <input type="text" placeholder="Nome Completo" value={nome} onChange={ e => setNome(e.target.value)} className="padrao"/>
-                    <input type="email" placeholder="Email" value={email} onChange={ e => setEmail(e.target.value)} className="padrao"/>
-                    
-                    {/* Usando a máscara da Layssa para uma UX melhor */}
-                    <input 
-                        type="text" 
-                        placeholder="Número do CPF" 
-                        value={cpf} 
-                        onChange={(e) => setCpf(maskCPF(e.target.value))}
-                        className="padrao"
-                    />
-                    
-                    <input type="password" placeholder="Senha" value={senha} onChange={ e => setSenha(e.target.value)} className="padrao"/>
-                    <input type="password" placeholder="Confirmar senha" value={confirmSenha} onChange={ e => setConfirmSenha(e.target.value)} className="padrao"/>
+                    <input type="text" placeholder="Nome Completo" value={nome} onChange={ e => setNome(e.target.value)} className={`padrao ${errorField === "nome" ? "!border-red-500 bg-red-50" : ""}`}/>
+                    <input type="email" placeholder="Email" value={email} onChange={ e => setEmail(e.target.value)} className={`padrao ${errorField === "email" ? "!border-red-500 bg-red-50" : ""}`}/>
+                    <input type="text" placeholder="Número do CPF" value={cpf} onChange={(e) => setCpf(maskCPF(e.target.value))} className={`padrao ${errorField === "cpf" ? "!border-red-500 bg-red-50" : ""}`}/>
+                    <input type="password" placeholder="Senha" value={senha} onChange={ e => setSenha(e.target.value)} className={`padrao ${errorField === "senha" ? "!border-red-500 bg-red-50" : ""}`}/>
+                    <input type="password" placeholder="Confirmar senha" value={confirmSenha} onChange={ e => setConfirmSenha(e.target.value)} className={`padrao ${errorField === "confirmSenha" ? "!border-red-500 bg-red-50" : ""}`}/>
 
                     <button type="submit" className="btn-telas-iniciais" onClick={cadastrarProp}>
                         Cadastrar

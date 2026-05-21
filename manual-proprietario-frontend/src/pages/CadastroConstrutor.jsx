@@ -14,7 +14,7 @@ function CadastroConstrutor() {
     const [ senha, setSenha ] = useState("");
     const [ confirmSenha, setConfirmSenha ] = useState("");
     const [ errorMessage, setErrorMessage] = useState("");
-
+    const [errorField, setErrorField] = useState("");
     const navigate = useNavigate();
 
     const cadastrarConst = async () => {
@@ -22,22 +22,22 @@ function CadastroConstrutor() {
         
         // Validações locais (Layssa)
         const erroNome = ValidateFullName(nome);
-        if (erroNome) return setErrorMessage(erroNome);
+        if (erroNome) { setErrorField("nome"); return setErrorMessage(erroNome) };
         
         const erroEmail = ValidateLoginFields(email, "placeholder");
-        if (erroEmail && erroEmail.includes("Email")) return setErrorMessage(erroEmail);
+        if (erroEmail && erroEmail.includes("Email")) { setErrorField("email"); return setErrorMessage(erroEmail) };
         
         const erroCpf = ValidateCPF(cpf);
-        if (erroCpf) return setErrorMessage(erroCpf);
+        if (erroCpf) { setErrorField("cpf"); return setErrorMessage(erroCpf) };
         
         const erroCrea = ValidateCREA(crea, "construtor");
-        if (erroCrea) return setErrorMessage(erroCrea);
+        if (erroCrea) { setErrorField("crea"); return setErrorMessage(erroCrea) };
         
         const erroSenha = ValidateStrongPassword(senha);
-        if (erroSenha) return setErrorMessage(erroSenha);
+        if (erroSenha) { setErrorField("senha"); return setErrorMessage(erroSenha) };
         
         const erroMatch = ValidatePasswordMatch(senha, confirmSenha);
-        if (erroMatch) return setErrorMessage(erroMatch);
+        if (erroMatch) { setErrorField("confirmSenha"); return setErrorMessage(erroMatch) };
 
         try {
             const payload = {
@@ -55,8 +55,13 @@ function CadastroConstrutor() {
             navigate("/login");
         } catch(error) {
             // Unindo os mundos: Pega a mensagem real do erro do back e joga no box de erro da tela
-            const mensagemErro = error.response?.data?.message || "Erro ao realizar cadastro no servidor.";
-            setErrorMessage(mensagemErro);
+            const backErrors = error.response?.data?.errors;
+            if (backErrors && Object.keys(backErrors).length > 0) {
+                setErrorField(Object.keys(backErrors)[0]);
+                setErrorMessage(Object.values(backErrors)[0]);
+            } else {
+                setErrorMessage(error.response?.data?.message || "Erro ao realizar cadastro no servidor.");
+            }
             console.error("Erro no cadastro", error);
         }
     }
@@ -81,21 +86,13 @@ function CadastroConstrutor() {
                 </div>
 
                 <div className="campos-form">
-                    <input type="text" placeholder="Nome Completo" value={nome} onChange={ e => setNome(e.target.value)} className="padrao"/>
-                    <input type="email" placeholder="Email" value={email} onChange={ e => setEmail(e.target.value)} className="padrao"/>
-                    
+                    <input type="text" placeholder="Nome Completo" value={nome} onChange={ e => setNome(e.target.value)} className={`padrao ${errorField === "nome" ? "!border-red-500 bg-red-50" : ""}`}/>
+                    <input type="email" placeholder="Email" value={email} onChange={ e => setEmail(e.target.value)} className={`padrao ${errorField === "email" ? "!border-red-500 bg-red-50" : ""}`}/>
                     {/* Input com máscara de CPF */}
-                    <input 
-                        type="text" 
-                        placeholder="Número do CPF" 
-                        value={cpf} 
-                        onChange={(e) => setCpf(maskCPF(e.target.value))}
-                        className="padrao"
-                    />
-                    
-                    <input type="text" placeholder="Número do CREA" maxLength="11" value={crea} onChange={ e => setCrea(e.target.value)} className="padrao"/>
-                    <input type="password" placeholder="Senha" value={senha} onChange={ e => setSenha(e.target.value)} className="padrao"/>
-                    <input type="password" placeholder="Confirmar senha" value={confirmSenha} onChange={ e => setConfirmSenha(e.target.value)} className="padrao"/>
+                    <input type="text" placeholder="Número do CPF" value={cpf} onChange={(e) => setCpf(maskCPF(e.target.value))} className={`padrao ${errorField === "cpf" ? "!border-red-500 bg-red-50" : ""}`}/>
+                    <input type="text" placeholder="Número do CREA" maxLength="11" value={crea} onChange={ e => setCrea(e.target.value)} className={`padrao ${errorField === "crea" ? "!border-red-500 bg-red-50" : ""}`}/>
+                    <input type="password" placeholder="Senha" value={senha} onChange={ e => setSenha(e.target.value)} className={`padrao ${errorField === "senha" ? "!border-red-500 bg-red-50" : ""}`}/>
+                    <input type="password" placeholder="Confirmar senha" value={confirmSenha} onChange={ e => setConfirmSenha(e.target.value)} className={`padrao ${errorField === "confirmSenha" ? "!border-red-500 bg-red-50" : ""}`}/>
 
                     <button type="submit" className="btn-telas-iniciais" onClick={cadastrarConst}>
                         Cadastrar
