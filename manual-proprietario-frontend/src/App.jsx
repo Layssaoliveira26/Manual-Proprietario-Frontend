@@ -13,6 +13,8 @@ import CadastroProjeto from './pages/CadastroProjeto';
 import CadastroProjeto2 from './pages/CadastroProjeto2';
 import CadastroProjeto3 from './pages/CadastroProjeto3';
 import { jwtDecode } from 'jwt-decode';
+import ManualDetalhe from './pages/ManuaisDetalhes';
+import ManualComodo from './pages/ManualComodo';
 
 function App() {
    const [user, setUser] = useState(() => {
@@ -73,6 +75,14 @@ function App() {
         <Route
           path="/manuais"
           element={user ? <Manuais onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/manuais/:id"
+          element={user ? <ManualDetalhe onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/manuais/:id/comodo/:idComodo"
+          element={user ? <ManualComodo onLogout={handleLogout}/> : <Navigate to="/login" />}
         />
         <Route
           path="/projetos"
