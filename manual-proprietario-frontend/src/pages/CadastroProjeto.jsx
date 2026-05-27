@@ -50,16 +50,26 @@ function CadastroProjeto() {
             return;
         }
              
-        navigate("/cadastro-projeto2", { state: { formData, funcionarios: location.state?.funcionarios } });
+        navigate("/cadastro-projeto2", {
+            state: {
+                formData,
+                funcionarios: location.state?.funcionarios,
+                arquivos: location.state?.arquivos,
+            },
+        });
     };
     return (
         <div className="h-svh flex flex-col overflow-hidden">
             <MenuInicial />
             <div className="flex flex-1 overflow-hidden">
                 <BarraLateral />
-                <main className="w-full overflow-y-auto px-10 py-8">
+                <main className="w-full overflow-y-scroll px-10 py-8">
                     <h3 className="page-title pl-2">Configurar Projeto</h3>
-                    <BarraNumeros />
+                    <BarraNumeros
+                        formData={formData}
+                        funcionarios={location.state?.funcionarios}
+                        arquivos={location.state?.arquivos}
+                    />
                     <div className="flex flex-col justify-center">
                         <form>
                             <div className="flex flex-col">

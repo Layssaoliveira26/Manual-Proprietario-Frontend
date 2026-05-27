@@ -16,7 +16,7 @@ function CadastroProjeto3() {
     const formData = location.state?.formData;
     const funcionarios = location.state?.funcionarios;
 
-    const [arquivos, setArquivos] = useState({});
+    const [arquivos, setArquivos] = useState(location.state?.arquivos || {});
     const [errors, setErrors] = useState({}); 
     
     const projetos = [
@@ -116,9 +116,9 @@ function CadastroProjeto3() {
             <MenuInicial />
             <div className="flex flex-1 overflow-hidden">
                 <BarraLateral />
-                <main className="w-full overflow-y-auto px-10 py-8">
+                <main className="w-full overflow-y-scroll px-10 py-8">
                     <h3 className="page-title pl-2">Configurar Projeto</h3>
-                    <BarraNumeros />
+                    <BarraNumeros formData={formData} funcionarios={funcionarios} arquivos={arquivos} />
                     
                     {!formData && (
                         <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6 border border-red-200 text-sm">
@@ -174,7 +174,7 @@ function CadastroProjeto3() {
                             <div className="flex justify-center items-center gap-3 mt-40">
                                 <Link
                                     to="/cadastro-projeto2"
-                                    state={{ formData, funcionarios }}
+                                    state={{ formData, funcionarios, arquivos }}
                                     className="w-full max-w-37.5 py-3 px-4 text-center text-(--laranja-principal) border-(--laranja-principal) border-2 rounded-md font-medium"
                                 >
                                     Anterior
