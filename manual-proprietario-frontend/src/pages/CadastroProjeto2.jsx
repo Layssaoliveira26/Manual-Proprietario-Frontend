@@ -13,22 +13,30 @@ function CadastroProjeto2() {
     const formData = location.state?.formData;
     const arquivos = location.state?.arquivos;
 
-    const [funcionarios, setFuncionarios] = useState(location.state?.funcionarios || [{ nome: "", cargo: "Pedreiro" }]);
+    const [funcionarios, setFuncionarios] = useState(
+        location.state?.funcionarios || [{ nome: "", cargo: "Pedreiro", cargoOutro: "" }]
+    );
     const [errors, setErrors] = useState([]);
 
     const adicionarCampos = (e) => {
         e.preventDefault();
-        setFuncionarios([...funcionarios, { nome: "", cargo: "Pedreiro" }]);
+        setFuncionarios([...funcionarios, { nome: "", cargo: "Pedreiro", cargoOutro: "" }]);
     };
 
     const handleInputChange = (index, event) => {
         const values = [...funcionarios];
         values[index][event.target.name] = event.target.value;
+
+        if (event.target.name === "cargo" && event.target.value !== "Outro") {
+            values[index].cargoOutro = "";
+        }
+
         setFuncionarios(values);
         
         if (errors[index]) {
             const novosErros = [...errors];
-            novosErros[index].nome = "";
+            if (event.target.name === "nome") novosErros[index].nome = "";
+            if (event.target.name === "cargoOutro") novosErros[index].cargoOutro = "";
             setErrors(novosErros);
         }
     };
@@ -50,12 +58,19 @@ function CadastroProjeto2() {
             let erroResult = ValidateRequired(func.nome, "Nome do Funcionário");
             if (erroResult === "") erroResult = ValidateMinLength(func.nome, 3, "Nome do Funcionário");
             if (erroResult === "") erroResult = ValidateFullName(func.nome) || "";
-            return { nome: erroResult };
+
+            let erroCargoOutro = "";
+            if (func.cargo === "Outro") {
+                erroCargoOutro = ValidateRequired(func.cargoOutro, "Outro cargo");
+                if (erroCargoOutro === "") erroCargoOutro = ValidateMinLength(func.cargoOutro, 2, "Outro cargo");
+            }
+
+            return { nome: erroResult, cargoOutro: erroCargoOutro };
         });
 
         setErrors(errosValidados);
 
-        const temErro = errosValidados.some(erro => erro.nome !== "");
+        const temErro = errosValidados.some(erro => erro.nome !== "" || erro.cargoOutro !== "");
         if (temErro) return;
 
         navigate("/cadastro-projeto3", { state: { formData, funcionarios, arquivos } });
@@ -96,25 +111,53 @@ function CadastroProjeto2() {
                                         {errors[index]?.nome && <span className="text-red-500 text-xs mt-1 font-medium">{errors[index].nome}</span>}
                                     </div>
 
-                                    <div className="flex flex-col w-full lg:max-w-xs">
-                                        <label className="font-semibold text-sm">Cargo</label>
-                                        <div className="flex items-center gap-3">
-                                            <select 
-                                                name="cargo"
-                                                value={func.cargo}
-                                                onChange={(e) => handleInputChange(index, e)}
-                                                className="w-full mt-2 px-4 py-3 border border-[#dcdcdc] rounded-lg text-sm outline-none bg-white"
-                                            >
-                                                <option value="Pedreiro">Pedreiro</option>
-                                                <option value="Mestre de Obras">Mestre de Obras</option>
-                                                <option value="Eletricista">Eletricista</option>
-                                            </select>
+                                    <div className="flex flex-col w-full lg:max-w-xl">
+                                        <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+                                            <div className="flex flex-col flex-1">
+                                                <label className="font-semibold text-sm">Cargo</label>
+                                                <select 
+                                                    name="cargo"
+                                                    value={func.cargo}
+                                                    onChange={(e) => handleInputChange(index, e)}
+                                                    className="w-full mt-2 px-4 py-3 border border-[#dcdcdc] rounded-lg text-sm outline-none bg-white"
+                                                >
+                                                    <option value="Servente">Servente</option>
+                                                    <option value="Pedreiro">Pedreiro</option>
+                                                    <option value="Eletricista">Eletricista</option>
+                                                    <option value="Ajudante">Ajudante</option>
+                                                    <option value="Encanador">Encanador</option>
+                                                    <option value="Carpinteiro">Carpinteiro</option>
+                                                    <option value="Armador">Armador</option>
+                                                    <option value="Mestre">Mestre</option>
+                                                    <option value="Técnico">Técnico</option>
+                                                    <option value="Engenheiro">Engenheiro</option>
+                                                    <option value="Outro">Outro Cargo</option>
+                                                </select>
+                                            </div>
+
+                                            {func.cargo === "Outro" && (
+                                                <div className="flex flex-col flex-1">
+                                                    <label className="font-semibold text-sm">Outro cargo*</label>
+                                                    <input 
+                                                        type="text" 
+                                                        name="cargoOutro"
+                                                        value={func.cargoOutro || ""}
+                                                        onChange={(e) => handleInputChange(index, e)}
+                                                        placeholder="Informe o cargo" 
+                                                        className={`w-full mt-2 px-4 py-3 border rounded-lg text-sm outline-none ${errors[index]?.cargoOutro ? 'border-red-500' : 'border-[#dcdcdc]'}`}
+                                                    />
+                                                    {errors[index]?.cargoOutro && (
+                                                        <span className="text-red-500 text-xs mt-1 font-medium">{errors[index].cargoOutro}</span>
+                                                    )}
+                                                </div>
+                                            )}
 
                                             {funcionarios.length > 1 && (
                                                 <button 
                                                     type="button"
                                                     onClick={(e) => removerFuncionario(index, e)}
-                                                    className="mt-2 p-3 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                                                    className="p-3 text-red-500 hover:bg-red-50 rounded-md transition-colors self-end"
+                                                    aria-label="Remover funcionário"
                                                 >
                                                     <LuTrash2 size={20} />
                                                 </button>
