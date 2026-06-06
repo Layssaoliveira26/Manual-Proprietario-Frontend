@@ -1,6 +1,7 @@
 import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
 import { MdOutlineEngineering } from "react-icons/md";
+import { IoEyeOutline } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
@@ -32,15 +33,14 @@ function formateStatus(status) {
 }
 
 function formatarData(dataString) {
+	if (!dataString) return "";
 	const data = new Date(dataString);
+	if (isNaN(data.getTime())) return dataString;
 	const dia = String(data.getDate()).padStart(2, '0');
 	const mes = String(data.getMonth() + 1).padStart(2, '0');
 	const ano = data.getFullYear();
 	return `${dia}/${mes}/${ano}`;
 }
-
-
-
 
 function Manuais({ onLogout }) {
 
@@ -98,11 +98,11 @@ function Manuais({ onLogout }) {
 					<div className="w-full overflow-x-auto overflow-y-visible p-2">
 						<table className="tb-manuais w-full">
 							<colgroup>
-								<col className="w-1/4" />
-								<col className="w-1/4" />
-								<col className="w-1/4" />
-								<col className="w-1/4" />
-							</colgroup>
+                                <col className="w-[28%]" />
+                                <col className="w-[24%]" />
+                                <col className="w-[18%]" />
+                                <col className="w-[30%]" />
+                            </colgroup>
 							<thead>
 								<tr className="cabecalho bg-(--laranja-principal) text-white text-sm text-left rounded-2xl font-semibold ">
 									<th className="py-4 px-6">MANUAL</th>
@@ -120,20 +120,21 @@ function Manuais({ onLogout }) {
 										</td>
 									</tr>
 								) : projetos && projetos.length > 0 ? (
-									projetos.map((projetos) => (
-										<tr 
-											key={projetos.id}
-											className="cursor-pointer hover:bg-gray-50 transition-colors"
-											onClick={() => navigate(`/manuais/${projetos.id}`)}
-										>
-											<td className="py-5 px-6">{projetos.nomeProjeto}</td>
-											<td className="py-5 px-6">{projetos.responsavel}</td>
-											<td className="py-5 px-6">
-												<div className={getClasseStatus(projetos.status)}>
-													{formateStatus(projetos.status)}
+									projetos.map((manual) => (
+										<tr key={manual.id}>
+											<td className="py-5 px-6">{manual.nomeProjeto}</td>
+											<td className="py-5 px-6">{manual.responsavel}</td>
+											<td className="py-5">
+												<div className={getClasseStatus(manual.status)}>
+													{formateStatus(manual.status)}
 												</div>
 											</td>
-											<td className="py-5 px-6">{formatarData(projetos.ultimaAtualizacao)}</td>
+											<td className="py-5 ">
+												<div className="flex items-center justify-center gap-15 text-center">
+													<span className="text-center">{formatarData(manual.ultimaAtualizacao)}</span>
+													<IoEyeOutline className="w-5 h-5 cursor-pointer" onClick={() => navigate(`/manuais/${manual.id}`)} />
+												</div>
+											</td>
 										</tr>
 									))
 								) : (

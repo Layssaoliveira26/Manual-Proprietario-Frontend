@@ -15,6 +15,8 @@ import CadastroProjeto3 from './pages/CadastroProjeto3';
 import { jwtDecode } from 'jwt-decode';
 import ManualDetalhe from './pages/ManuaisDetalhes';
 import ManualComodo from './pages/ManualComodo';
+import ProjetosDetalhes from './pages/ProjetosDetalhes';
+import ProjetosComodo from './pages/ProjetosComodo';
 
 function App() {
    const [user, setUser] = useState(() => {
@@ -87,6 +89,14 @@ function App() {
         <Route
           path="/projetos"
           element={user ? <Projetos onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/projetos/:id"
+          element={user ? <ProjetosDetalhes onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/projetos/:id/comodo/:idComodo"
+          element={user ? <ProjetosComodo onLogout={handleLogout}/> : <Navigate to="/login" />}
         />
         <Route
           path="/cadastro-projeto"

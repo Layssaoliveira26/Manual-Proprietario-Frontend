@@ -23,9 +23,35 @@ function ManualDetalhe({ onLogout }) {
       <div className="flex flex-1 overflow-hidden">
         <BarraLateral onLogout={onLogout} />
         <main className="w-full overflow-y-auto px-10 py-8">
+          
+          <div className="mb-8">
+            <p className="text-lg font-semibold text-[var(--laranja-principal)]">Manual</p>
+            <h3 className="text-[var(--cor-azul)] text-4xl font-bold mt-2 pl-2 font-semibold">Apartamento do {user?.name ?? user?.nome ?? "Usuário"}</h3>
+            <div className="mt-8 mb-8 ml-6  text-[#455861]">
+              <p className="font-semibold ">
+                <span className="text-[var(--cor-azul)] font-bold">Descrição: </span>
+                  Apartamento aconchegante e futurísico com insipirações da natureza. A estética 
+                  e design evoca a calmaria do campo atrelada de forma apaziguadora à agitação advinda dos 
+                  populosos centros urbanos.
+              </p>
+              
 
-          <h3 className="page-title pl-2">Apartamento do {user?.name ?? user?.nome ?? "Usuário"}</h3>
+              <p className="font-semibold ">
+                <span className="text-[var(--cor-azul)] font-bold">Endereço: </span>
+                
+                [Rua], [Número], [Complemento] - [Bairro]
+              </p>
+            </div>
+            
+            <div className="text-base  text-[#455861] font-medium">
+              <p className="">Data de início da obra: 01/01/1999</p>
+              <p className="">Data estimada de conclusão: 12/12/2026</p>
+            </div>
+            
+          </div>
+          
 
+          <h3 className="page-title ">Documentos da Obra</h3>
           <div className="grid grid-cols-4 gap-4 mb-10">
             {plantasMock.map((planta) => {
               const Icone = iconesProjeto[planta.tipo] ?? FaBuilding;
@@ -72,7 +98,7 @@ function ManualDetalhe({ onLogout }) {
                     onClick={() => navigate(`/manuais/${id}/comodo/${comodo.id}`)}
                     className="bg-[#c0392b] text-white text-sm rounded px-4 py-1.5 hover:bg-[#a93226] transition-colors whitespace-nowrap"
                     >
-                    Ver detalhes
+                    Ver Alterações
                     </button>
                 </div>
                 ))}

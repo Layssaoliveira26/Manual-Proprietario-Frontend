@@ -3,7 +3,9 @@ import BarraLateral from "../components/BarraLateral"
 import MenuInicial from "../components/MenuInicial"
 import { MdOutlineEngineering } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { IoSettingsOutline } from "react-icons/io5";
 import { buscarDadosDashboard } from "../services/homeService";
+import { useNavigate } from "react-router-dom";
 
 function getClasseStatus(status) {
     switch(status) {
@@ -22,6 +24,7 @@ function Projetos({ onLogout }) {
     const [projetos, setProjetos] = useState([]); 
     const [carregando, setCarregando] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const navigate = useNavigate();
 
     useEffect(() => {
         let ativo = true;
@@ -62,7 +65,7 @@ function Projetos({ onLogout }) {
                     <div className="flex items-center text-center justify-between">
                         <h3 className="page-title pl-2">Projetos recentes</h3>
                         <Link to="/cadastro-projeto">
-                            <button className="text-md px-4 h-10 rounded-sm border-2 font-semibold border-[var(--cor-azul)] text-[var(--cor-azul)] hover:bg-[var(--cor-azul)] hover:text-white transition-all">
+                                <button className="text-md px-4 h-10 rounded-sm border-2 font-semibold border-(--cor-azul) text-(--cor-azul) hover:bg-(--cor-azul) hover:text-white transition-all">
                                 Criar novo projeto
                             </button>
                         </Link>
@@ -77,7 +80,7 @@ function Projetos({ onLogout }) {
                                 <col className="w-1/4" />
                             </colgroup>
                             <thead>
-                                <tr className="cabecalho bg-[var(--laranja-principal)] text-white text-sm text-left font-semibold">
+                                <tr className="cabecalho bg-(--laranja-principal) text-white text-sm text-left font-semibold">
                                     <th className="py-4 px-6">PROJETO</th>
                                     <th className="py-4 px-6">RESPONSÁVEL</th>
                                     <th className="py-4 px-6">STATUS</th>
@@ -89,9 +92,13 @@ function Projetos({ onLogout }) {
                                     <tr>
                                         <td colSpan={4} className="py-10 text-center">Carregando projetos...</td>
                                     </tr>
-                                ) : projetos.length > 0 ? (
+                                ) : projetos && projetos.length > 0 ? (
                                     projetos.map((projeto) => (
-                                        <tr key={projeto.id}>
+                                        <tr 
+                                            key={projeto.id}
+											className="cursor-pointer hover:bg-gray-50 transition-colors"
+                                            onClick={() => navigate(`/projetos/${projeto.id}`)}
+                                        >
                                             <td className="py-5 px-6 font-medium">{projeto.projeto}</td>
                                             <td className="py-5 px-6">{projeto.responsavel}</td>
                                             <td className="py-5 px-6">
@@ -99,7 +106,12 @@ function Projetos({ onLogout }) {
                                                     {projeto.status}
                                                 </div>
                                             </td>
-                                            <td className="py-5 px-6">{projeto.ultimaAtualizacao}</td>
+                                            <td className="py-5 px-6">
+                                                <div className="flex items-center justify-center gap-15 text-center">
+                                                    <span className="text-center">{projeto.ultimaAtualizacao}</span>
+                                                    <IoSettingsOutline className="w-5 h-5 cursor-pointer" onClick={(e) => { e.stopPropagation(); navigate(`/projetos/${projeto.id}`); }} />
+                                                </div>
+                                            </td>
                                         </tr>
                                     ))
                                 ) : (
