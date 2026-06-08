@@ -4,6 +4,8 @@ import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
 import { projetosDetalhesMock } from "../mocks/projetosDetalhes";
 import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
+import api from "../services/api";
 
 const iconesProjeto = {
   "Projeto Arquitetônico": FaBuilding,
@@ -17,6 +19,26 @@ function ProjetoDetalhe({ onLogout }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const projeto = projetosDetalhesMock[id] ?? projetosDetalhesMock["projeto-gabriel-apto"];
+  const [modalAberto, setModalAberto] = useState(false);
+  const [novoComodo, setNovoComodo] = useState({ nome: "", andar: "Térreo" });
+
+  const handleCriarComodo = async () => {
+    if (!novoComodo.nome.trim()) return;
+
+    try {
+      await api.post(`/projects/${id}/rooms`, {
+        nomeAndar: novoComodo.andar,
+        nomeComodo: novoComodo.nome.trim(),
+      });
+
+      setNovoComodo({ nome: "", andar: "Térreo" });
+      setModalAberto(false);
+      window.location.reload();
+    } catch (error) {
+      console.error("Erro ao criar cômodo:", error);
+      alert("Erro ao criar cômodo. Tente novamente.");
+    }
+  };
 
   return (
     <div className="h-svh flex flex-col overflow-hidden">
@@ -91,9 +113,59 @@ function ProjetoDetalhe({ onLogout }) {
         <div className="w-full overflow-x-auto overflow-y-visible py-6 px-8 bg-white">
             <div className="flex items-center justify-between">
                 <h2 className="text-3xl font-semibold text-(--cor-azul) mb-4">Cômodos</h2>
-                <button className="text-sm border border-[#c0392b] text-[#c0392b] rounded px-4 py-1.5 hover:bg-[#c0392b] hover:text-white transition-colors ">Novo Cômodo</button>
+                {!modalAberto ? (
+                  <button
+                    onClick={() => setModalAberto(true)}
+                    className="text-sm border border-[#c0392b] text-[#c0392b] rounded px-4 py-1.5 hover:bg-[#c0392b] hover:text-white transition-colors"
+                  >
+                    Novo Cômodo
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => { setModalAberto(false); setNovoComodo({ nome: "", andar: "Térreo" }); }}
+                    className="text-sm border border-[#c0392b] text-[#c0392b] rounded px-4 py-1.5 hover:bg-[#c0392b] hover:text-white transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                )}
             </div>
-            
+        {modalAberto && (
+          <div className="w-full px-2 py-3 mb-4">
+            <div className="flex items-end gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-[#c0392b]">Andar</label>
+                <select
+                  value={novoComodo.andar}
+                  onChange={(e) => setNovoComodo({ ...novoComodo, andar: e.target.value })}
+                  className="border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 w-36"
+                >
+                  <option>Térreo</option>
+                  <option>Primeiro Andar</option>
+                  <option>Segundo Andar</option>
+                  <option>Terceiro Andar</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-sm font-semibold text-[#c0392b]">Nome do Cômodo</label>
+                <input
+                  type="text"
+                  placeholder="Nome do Cômodo"
+                  value={novoComodo.nome}
+                  onChange={(e) => setNovoComodo({ ...novoComodo, nome: e.target.value })}
+                  className="border border-gray-300 rounded px-3 py-2 text-sm text-gray-600"
+                />
+              </div>
+
+              <button
+                onClick={handleCriarComodo}
+                className="text-sm border border-[#c0392b] text-[#c0392b] rounded px-5 py-2 hover:bg-[#c0392b] hover:text-white transition-colors whitespace-nowrap"
+              >
+                Criar Cômodo
+              </button>
+            </div>
+          </div>
+        )}
             <div className="flex flex-col ">
             {projeto.comodos.map((comodo) => (
                 <div
