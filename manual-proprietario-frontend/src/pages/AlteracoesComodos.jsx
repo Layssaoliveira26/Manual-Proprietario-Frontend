@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'; 
+import { useState } from 'react'; 
 import BarraLateral from "../components/BarraLateral"
 import MenuInicial from "../components/MenuInicial"
 import { MdOutlineEngineering } from "react-icons/md";
 import { LuUpload } from "react-icons/lu";
 import { Link, useLocation, useParams } from "react-router-dom";
+import { projetosDetalhesMock } from "../mocks/projetosDetalhes";
 
 const DISCIPLINAS = [
   { value: "Arquitetônica", label: "Arquitetônica" },
@@ -24,7 +25,17 @@ const FUNCIONARIOS_POR_PROJETO = {
 
 export default function AlteraçõesComodos({ onLogout }) {
   const location = useLocation();
-  const { id: projetoId } = useParams();
+  const { id: projetoId, idComodo } = useParams();
+  const projeto = location.state?.projeto ?? projetosDetalhesMock[projetoId];
+  const comodo = location.state?.comodo ?? projeto?.comodos?.find((item) => `${item.id}` === idComodo) ?? null;
+  const tituloComodo = comodo?.nome ?? "[nome do Cômodo]";
+
+  const funcionariosIniciais = location.state?.funcionarios && Array.isArray(location.state.funcionarios)
+    ? location.state.funcionarios.map((func, index) => ({
+        id: func.id ?? `funcionario-${index}`,
+        nome: func.nome || "Sem nome"
+      }))
+    : FUNCIONARIOS_POR_PROJETO.default;
   
   const [formData, setFormData] = useState({
     nomeAlteracao: "",
@@ -36,21 +47,8 @@ export default function AlteraçõesComodos({ onLogout }) {
     funcionarioResponsavel: ""
   });
 
-  const [funcionarios, setFuncionarios] = useState([]);
+  const [funcionarios] = useState(funcionariosIniciais);
   const [registrosFoto, setRegistrosFoto] = useState([]);
-
-  useEffect(() => {
-    // Carrega funcionários do projeto da navegação ou usa mock
-    const funcionariosNav = location.state?.funcionarios;
-    if (funcionariosNav && Array.isArray(funcionariosNav)) {
-      setFuncionarios(funcionariosNav.map(func => ({
-        id: func.nome || Math.random(),
-        nome: func.nome || "Sem nome"
-      })));
-    } else {
-      setFuncionarios(FUNCIONARIOS_POR_PROJETO["default"]);
-    }
-  }, [location.state]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -132,8 +130,11 @@ export default function AlteraçõesComodos({ onLogout }) {
               <div className="pb-4 border-b border-gray-200">
                 <div className="mb-2 font-semibold text-sm" style={{ color: '#C15A3E' }}>As-Built</div>
                 <h1 className="text-2xl font-bold text-blue-900">
-                  Alteração no Cômodo - [nome do Cômodo]
+                  Alteração no Cômodo - {tituloComodo}
                 </h1>
+                {projeto?.titulo ? (
+                  <p className="mt-2 text-sm text-gray-500">Projeto: {projeto.titulo}</p>
+                ) : null}
               </div>
 
               {/* Nome da Alteração */}

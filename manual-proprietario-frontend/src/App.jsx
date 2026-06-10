@@ -17,6 +17,8 @@ import ManualDetalhe from './pages/ManuaisDetalhes';
 import ManualComodo from './pages/ManualComodo';
 import ProjetosDetalhes from './pages/ProjetosDetalhes';
 import ProjetosComodo from './pages/ProjetosComodo';
+import AlteracoesProjeto from './pages/AlteracoesProjeto';
+import AlteracoesComodos from './pages/AlteracoesComodos';
 
 function App() {
    const [user, setUser] = useState(() => {
@@ -97,6 +99,14 @@ function App() {
         <Route
           path="/projetos/:id/comodo/:idComodo"
           element={user ? <ProjetosComodo onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/projetos/:id/comodo/:idComodo/alteracoes"
+          element={user ? <AlteracoesComodos onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/projetos/:id/alteracoes"
+          element={user ? <AlteracoesProjeto onLogout={handleLogout}/> : <Navigate to="/login" />}
         />
         <Route
           path="/cadastro-projeto"

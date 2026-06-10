@@ -3,9 +3,9 @@ import { FaBuilding, FaSitemap, FaWater, FaBolt } from "react-icons/fa";
 import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
 import { projetosDetalhesMock } from "../mocks/projetosDetalhes";
-import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
 import api from "../services/api";
+import { BiEdit } from "react-icons/bi";
 
 const iconesProjeto = {
   "Projeto Arquitetônico": FaBuilding,
@@ -17,7 +17,6 @@ const iconesProjeto = {
 function ProjetoDetalhe({ onLogout }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const projeto = projetosDetalhesMock[id] ?? projetosDetalhesMock["projeto-gabriel-apto"];
   const [modalAberto, setModalAberto] = useState(false);
   const [novoComodo, setNovoComodo] = useState({ nome: "", andar: "Térreo" });
@@ -51,10 +50,15 @@ function ProjetoDetalhe({ onLogout }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-lg font-semibold text-(--laranja-principal)">Projeto</p>
-                <h3 className="text-(--cor-azul) text-4xl font-semibold mt-2 pl-2">Apartamento do {user?.name ?? user?.nome ?? "Usuário"}</h3>
+                <h3 className="text-(--cor-azul) text-4xl font-semibold mt-2 pl-2">{projeto.titulo}</h3>
               </div>
               <div className="flex items-center gap-3">
-                <button className="text-sm border border-[#c0392b] text-[#c0392b] rounded px-4 py-2 hover:bg-[#c0392b] hover:text-white transition-colors ">Editar Informações</button>
+                <button
+                  onClick={() => navigate(`/projetos/${id}/alteracoes`, { state: { projeto } })}
+                  className="text-sm border border-[#c0392b] text-[#c0392b] rounded px-4 py-2 hover:bg-[#c0392b] hover:text-white transition-colors "
+                >
+                  Editar Informações
+                </button>
                 <button className="text-sm border border-[#c0392b] text-[#c0392b] rounded px-4 py-2 hover:bg-[#c0392b] hover:text-white transition-colors">Entregar Manual</button>
               </div>
             </div>
@@ -182,10 +186,10 @@ function ProjetoDetalhe({ onLogout }) {
                     Última alteração: {comodo.ultimaAlteracao}
                   </span>
                   <button
-                    onClick={() => navigate(`/projetos/${id}/comodo/${comodo.id}`)}
-                    className="bg-[#c0392b] text-white text-sm rounded px-4 py-1.5 hover:bg-[#a93226] transition-colors whitespace-nowrap"
+                    onClick={() => navigate(`/projetos/${id}/comodo/${comodo.id}/alteracoes`, { state: { projeto, comodo } })}
+                    className=" text-white text-xl rounded px-4 py-1.5 cursor-pointer transition-colors whitespace-nowrap"
                   >
-                    Ver Alterações
+                    <BiEdit color="#c0392b"/>
                   </button>
                 </div>
               ))}

@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import BarraLateral from "../components/BarraLateral"
 import MenuInicial from "../components/MenuInicial"
 import { LuTrash2 } from "react-icons/lu";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { projetosDetalhesMock } from "../mocks/projetosDetalhes";
 
 const TIPOS_CONSTRUCAO = [
   { value: "Apartamento", label: "Apartamento" },
@@ -19,10 +20,12 @@ const CARGOS = [
 ];
 
 export default function AlteracoesProjeto({ onLogout }) {
+  const { id } = useParams();
   const location = useLocation();
-  const projetoData = location.state?.projeto;
+  const navigate = useNavigate();
+  const projetoData = location.state?.projeto ?? projetosDetalhesMock[id];
 
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     nomeProjeto: "",
     descricao: "",
     rua: "",
@@ -33,28 +36,74 @@ export default function AlteracoesProjeto({ onLogout }) {
     dataInicio: "",
     dataConclussaoEstimada: "",
     numeroART: ""
-  });
+  };
+
+  const formatarDataParaInput = (data) => {
+    if (!data) return "";
+    if (data.includes("-")) return data;
+
+    const partes = data.split("/");
+    if (partes.length !== 3) return "";
+
+    const [dia, mes, ano] = partes;
+    return `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+  };
+
+  const inferirTipoConstrucao = (titulo = "") => {
+    const texto = titulo.toLowerCase();
+
+    if (texto.includes("apartamento") || texto.includes("apto")) {
+      return "Apartamento";
+    }
+
+    if (texto.includes("casa") || texto.includes("sobrado")) {
+      return "Casa";
+    }
+
+    if (texto.includes("comercial")) {
+      return "Comercial";
+    }
+
+    return "Outro";
+  };
+
+  const extrairEndereco = (endereco = "") => {
+    const [logradouroParte, bairroParte] = endereco.split(" - ");
+    const segmentos = (logradouroParte ?? "").split(",").map((item) => item.trim()).filter(Boolean);
+
+    return {
+      rua: segmentos[0] ?? "",
+      numero: segmentos[1] ?? "",
+      complemento: segmentos[2] ?? "",
+      bairro: bairroParte?.trim() ?? ""
+    };
+  };
+
+  const montarFormDataDoProjeto = (projeto) => {
+    const endereco = extrairEndereco(projeto?.endereco);
+
+    return {
+      ...defaultFormData,
+      nomeProjeto: projeto?.titulo ?? "",
+      descricao: projeto?.descricao ?? "",
+      rua: endereco.rua,
+      bairro: endereco.bairro,
+      numero: endereco.numero,
+      complemento: endereco.complemento,
+      tipoConstrucao: inferirTipoConstrucao(projeto?.titulo),
+      dataInicio: formatarDataParaInput(projeto?.dataInicio),
+      dataConclussaoEstimada: formatarDataParaInput(projeto?.dataConclusao),
+      numeroART: projeto?.numeroART ?? ""
+    };
+  };
+
+  const initialFormData = projetoData ? montarFormDataDoProjeto(projetoData) : defaultFormData;
+
+  const [formData, setFormData] = useState(initialFormData);
 
   const [funcionarios, setFuncionarios] = useState([
     { id: 1, nome: "", cargo: "Mestre de Obra" }
   ]);
-
-  useEffect(() => {
-    if (projetoData) {
-      setFormData({
-        nomeProjeto: projetoData.nomeProjeto || "",
-        descricao: projetoData.descricao || "",
-        rua: projetoData.rua || "",
-        bairro: projetoData.bairro || "",
-        numero: projetoData.numero || "",
-        complemento: projetoData.complemento || "",
-        tipoConstrucao: projetoData.tipoConstrucao || "Apartamento",
-        dataInicio: projetoData.dataInicio || "",
-        dataConclussaoEstimada: projetoData.dataConclussaoEstimada || "",
-        numeroART: projetoData.numeroART || ""
-      });
-    }
-  }, [projetoData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -89,22 +138,12 @@ export default function AlteracoesProjeto({ onLogout }) {
     e.preventDefault();
     console.log("Salvando alterações do projeto:", formData, funcionarios);
     alert("Informações do projeto salvas com sucesso!");
+    navigate(`/projetos/${id}`);
   };
 
   const handleCancelar = (e) => {
     e.preventDefault();
-    setFormData({
-      nomeProjeto: "",
-      descricao: "",
-      rua: "",
-      bairro: "",
-      numero: "",
-      complemento: "",
-      tipoConstrucao: "Apartamento",
-      dataInicio: "",
-      dataConclussaoEstimada: "",
-      numeroART: ""
-    });
+    setFormData(initialFormData);
     setFuncionarios([{ id: 1, nome: "", cargo: "Mestre de Obra" }]);
   };
 
