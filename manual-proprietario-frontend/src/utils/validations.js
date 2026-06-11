@@ -136,3 +136,21 @@ export const ValidateFileSize = (file, maxSizeMB = 5) => {
     }
     return "";
 };
+
+/* Compara se a data escolhida é maior (está no futuro) em relação a hoje e verifica a obrigatoriedade */
+export const ValidatePastOrTodayDate = (dateString) => {
+    if (!dateString) {
+        return "A data é obrigatória.";
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [ano, mes, dia] = dateString.split('-');
+    const selectedDate = new Date(ano, mes - 1, dia);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate > today) {
+        return "A alteração não pode ter uma data futura.";
+    }
+    return "";
+};

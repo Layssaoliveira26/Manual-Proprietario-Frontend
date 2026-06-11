@@ -4,6 +4,8 @@ import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
 import { plantasMock, comodosMock } from "../mocks/manuaisDetalhes";
 import { useAuth } from "../context/AuthContext";
+import { useState, useEffect } from 'react';
+import api from "../services/api";
 
 const iconesProjeto = {
   "Projeto Arquitetônico": FaBuilding,
@@ -16,7 +18,35 @@ function ManualDetalhe({ onLogout }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [comodos, setComodos] = useState([]);
+  const [loadingComodos, setLoadingComodos] = useState(true);
 
+  const buscaComodos = async () => {
+    try {
+      setLoadingComodos(true);
+      const response = await api.get(`/projects/${id}/rooms`);
+      const andares = response.data.data;
+      const todosComodos = andares.flatMap((andar) =>
+        andar.comodos.map((comodo) => ({
+          id: `${andar.id}-${comodo.id}`,
+          idComodo: comodo.id,
+          idAndar: andar.id,
+          nome: comodo.nome,
+          andar: andar.nome,
+        }))
+      );
+      setComodos(todosComodos);
+    } catch (error) {
+      console.log("Erro ao buscar cômodos: ", error);
+    } finally {
+      setLoadingComodos(false);
+    }
+  };
+
+  useEffect(() => {
+    buscaComodos();
+  }, [id]);
+  
   return (
     <div className="h-svh flex flex-col overflow-hidden">
       <MenuInicial />
@@ -80,33 +110,36 @@ function ManualDetalhe({ onLogout }) {
         <div className="w-full overflow-x-auto overflow-y-visible py-6 px-8 bg-white">
             <h2 className="text-3xl font-semibold text-[var(--cor-azul)] mb-4">Cômodos</h2>
             <div className="flex flex-col ">
-                {comodosMock.map((comodo) => (
-                <div
-                    key={comodo.id}
-                    className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
-                >
-                    <span className="font-semibold text-sm text-gray-800 w-36">
-                    {comodo.nome}
-                    </span>
-                    <span className="text-sm text-gray-500 flex-1 px-4">
-                    {comodo.andar}
-                    </span>
-                    <span className="text-sm text-gray-400 mr-6">
-                    Última alteração: {comodo.ultimaAlteracao}
-                    </span>
-                    <button
-                    onClick={() => navigate(`/manuais/${id}/comodo/${comodo.id}`)}
-                    className="bg-[#c0392b] text-white text-sm rounded px-4 py-1.5 hover:bg-[#a93226] transition-colors whitespace-nowrap"
+                {loadingComodos ? (
+                    <p className="text-gray-500 py-4">Carregando cômodos...</p>
+                ) : comodos.length === 0 ? (
+                    <p className="text-gray-500 py-4">Nenhum cômodo registrado neste manual.</p>
+                ) : (
+                    comodos.map((comodo) => (
+                    <div
+                        key={comodo.id}
+                        className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
                     >
-                    Ver Alterações
-                    </button>
-                </div>
-                ))}
+                        <span className="font-semibold text-sm text-gray-800 w-36">
+                        {comodo.nome}
+                        </span>
+                        <span className="text-sm text-gray-500 flex-1 px-4">
+                        {comodo.andar}
+                        </span>
+                        <span className="text-sm text-gray-400 mr-6">
+                        Última alteração: {comodo.ultimaAlteracao || "Nenhuma"}
+                        </span>
+                        <button
+                          onClick={() => navigate(`/manuais/${id}/comodo/${comodo.idComodo}`)} 
+                          className="bg-[#c0392b] text-white text-sm rounded px-4 py-1.5 hover:bg-[#a93226] transition-colors whitespace-nowrap"
+                        >
+                        Ver Alterações
+                        </button>
+                    </div>
+                    ))
+                )}
             </div>
         </div>
-          {/* Seção Cômodos */}
-          
-
         </main>
       </div>
     </div>
