@@ -66,12 +66,23 @@ function ProjetoDetalhe({ onLogout }) {
           }));
         });
 
+        // Mapeamento resiliente de datas baseado nas respostas reais do Back-end
+        const dataInicioRaw = apiData.datas?.dataInicio ?? apiData.datas?.inicio ?? apiData.dataInicio;
+        const dataConclusaoRaw = apiData.datas?.dataConclusao ?? apiData.datas?.conclusao ?? apiData.dataEntrega ?? apiData.dataConclusao;
+
+        // CORREÇÃO: Forçando o timeZone 'UTC' para evitar que a data volte 1 dia atrás devido ao fuso local
+        const formatarDataSegura = (dataRaw) => {
+          if (!dataRaw) return "";
+          const d = new Date(dataRaw);
+          return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+        };
+
         const mapped = {
           titulo: apiData.nomeProjeto || apiData.titulo || "",
           descricao: apiData.descricao || "",
           endereco,
-          dataInicio: apiData.datas && apiData.datas.inicio ? new Date(apiData.datas.inicio).toLocaleDateString("pt-BR") : "",
-          dataConclusao: apiData.datas && apiData.datas.conclusao ? new Date(apiData.datas.conclusao).toLocaleDateString("pt-BR") : "",
+          dataInicio: formatarDataSegura(dataInicioRaw),
+          dataConclusao: formatarDataSegura(dataConclusaoRaw),
           documentos,
           comodos,
         };
@@ -154,7 +165,6 @@ function ProjetoDetalhe({ onLogout }) {
                 </div>
 
               </div>
-
 
               <h3 className="page-title ">Documentos da Obra</h3>
               <div className="grid grid-cols-4 gap-4 mb-10">
