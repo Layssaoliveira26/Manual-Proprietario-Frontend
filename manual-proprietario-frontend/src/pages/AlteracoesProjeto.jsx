@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import BarraLateral from "../components/BarraLateral"
 import MenuInicial from "../components/MenuInicial"
 import { LuTrash2 } from "react-icons/lu";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import api from "../services/api";
+import { projetosDetalhesMock } from "../mocks/projetosDetalhes";
 
 const TIPOS_CONSTRUCAO = [
   { value: "Apartamento", label: "Apartamento" },
@@ -23,6 +23,7 @@ export default function AlteracoesProjeto({ onLogout }) {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const projetoData = location.state?.projeto ?? projetosDetalhesMock[id];
 
   const defaultFormData = {
     nomeProjeto: "",
@@ -39,11 +40,9 @@ export default function AlteracoesProjeto({ onLogout }) {
 
   const formatarDataParaInput = (data) => {
     if (!data) return "";
-    const texto = String(data);
-    if (texto.includes("T")) return texto.split("T")[0];
-    if (texto.includes("-")) return texto.slice(0, 10);
+    if (data.includes("-")) return data;
 
-    const partes = texto.split("/");
+    const partes = data.split("/");
     if (partes.length !== 3) return "";
 
     const [dia, mes, ano] = partes;
@@ -52,25 +51,24 @@ export default function AlteracoesProjeto({ onLogout }) {
 
   const inferirTipoConstrucao = (titulo = "") => {
     const texto = titulo.toLowerCase();
-    if (texto.includes("apartamento") || texto.includes("apto")) return "Apartamento";
-    if (texto.includes("casa") || texto.includes("sobrado")) return "Casa";
-    if (texto.includes("comercial")) return "Comercial";
+
+    if (texto.includes("apartamento") || texto.includes("apto")) {
+      return "Apartamento";
+    }
+
+    if (texto.includes("casa") || texto.includes("sobrado")) {
+      return "Casa";
+    }
+
+    if (texto.includes("comercial")) {
+      return "Comercial";
+    }
+
     return "Outro";
   };
 
-  const extrairEndereco = (endereco) => {
-    if (!endereco) return { rua: "", numero: "", complemento: "", bairro: "" };
-    
-    if (typeof endereco === "object") {
-      return {
-        rua: endereco.rua ?? "",
-        numero: endereco.numero != null ? String(endereco.numero) : "",
-        complemento: endereco.complemento ?? "",
-        bairro: endereco.bairro ?? "",
-      };
-    }
-
-    const [logradouroParte, bairroParte] = String(endereco).split(" - ");
+  const extrairEndereco = (endereco = "") => {
+    const [logradouroParte, bairroParte] = endereco.split(" - ");
     const segmentos = (logradouroParte ?? "").split(",").map((item) => item.trim()).filter(Boolean);
 
     return {
@@ -81,169 +79,73 @@ export default function AlteracoesProjeto({ onLogout }) {
     };
   };
 
-  const [formData, setFormData] = useState(defaultFormData);
-  const [formDataOriginal, setFormDataOriginal] = useState(defaultFormData);
-  const [carregando, setCarregando] = useState(true);
+  const montarFormDataDoProjeto = (projeto) => {
+    const endereco = extrairEndereco(projeto?.endereco);
 
-  const [funcionarios, setFuncionarios] = useState([{ id: 1, nome: "", cargo: "Mestre de Obra" }]);
-  const [funcionariosOriginais, setFuncionariosOriginais] = useState([]);
-  const [funcionariosDeletados, setFuncionariosDeletados] = useState([]);
-
-  useEffect(() => {
-    let ativo = true;
-
-    const carregarProjeto = async () => {
-      try {
-        setCarregando(true);
-        const res = await api.get(`/projects/${id}`);
-        if (!ativo) return;
-
-        const dados = res.data?.data ?? res.data ?? {};
-        const endereco = extrairEndereco(dados.endereco);
-        const titulo = dados.nomeProjeto ?? dados.titulo ?? "";
-        
-        const dataInicioRaw = dados.datas?.dataInicio ?? dados.datas?.inicio ?? dados.dataInicio ?? "";
-        const dataConclusaoRaw = dados.datas?.dataConclusao ?? dados.datas?.conclusao ?? dados.dataEntrega ?? dados.dataConclusao ?? "";
-
-        const dadosMapeados = {
-          nomeProjeto: titulo,
-          descricao: dados.descricao ?? "",
-          rua: endereco.rua,
-          bairro: endereco.bairro,
-          numero: endereco.numero,
-          complemento: endereco.complemento,
-          tipoConstrucao: dados.tipoConstrucao ?? inferirTipoConstrucao(titulo),
-          dataInicio: formatarDataParaInput(dataInicioRaw),
-          dataConclussaoEstimada: formatarDataParaInput(dataConclusaoRaw),
-          numeroART: dados.art ?? dados.numeroART ?? ""
-        };
-
-        setFormData(dadosMapeados);
-        setFormDataOriginal(dadosMapeados);
-        
-        if (Array.isArray(dados.funcionarios) && dados.funcionarios.length > 0) {
-          const listaApi = dados.funcionarios.map(f => ({
-            id: f.id, 
-            nome: f.nomeFunc ?? f.nome ?? "",
-            cargo: f.cargo ?? "Mestre de Obra"
-          }));
-          setFuncionarios(listaApi);
-          setFuncionariosOriginais(listaApi);
-        }
-      } catch (error) {
-        console.error("Erro ao carregar projeto para edição:", error);
-      } finally {
-        if (ativo) setCarregando(false);
-      }
+    return {
+      ...defaultFormData,
+      nomeProjeto: projeto?.titulo ?? "",
+      descricao: projeto?.descricao ?? "",
+      rua: endereco.rua,
+      bairro: endereco.bairro,
+      numero: endereco.numero,
+      complemento: endereco.complemento,
+      tipoConstrucao: inferirTipoConstrucao(projeto?.titulo),
+      dataInicio: formatarDataParaInput(projeto?.dataInicio),
+      dataConclussaoEstimada: formatarDataParaInput(projeto?.dataConclusao),
+      numeroART: projeto?.numeroART ?? ""
     };
+  };
 
-    carregarProjeto();
-    return () => { ativo = false; };
-  }, [id]);
+  const initialFormData = projetoData ? montarFormDataDoProjeto(projetoData) : defaultFormData;
+
+  const [formData, setFormData] = useState(initialFormData);
+
+  const [funcionarios, setFuncionarios] = useState([
+    { id: 1, nome: "", cargo: "Mestre de Obra" }
+  ]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  const handleFuncionarioChange = (idFunc, field, value) => {
+  const handleFuncionarioChange = (id, field, value) => {
     setFuncionarios(prev =>
-      prev.map(func => func.id === idFunc ? { ...func, [field]: value } : func)
+      prev.map(func =>
+        func.id === id ? { ...func, [field]: value } : func
+      )
     );
   };
 
   const handleAdicionarFuncionario = (e) => {
     e.preventDefault();
-    const tempId = `novo_${Date.now()}`;
-    setFuncionarios([...funcionarios, { id: tempId, nome: "", cargo: "Mestre de Obra" }]);
+    const novoId = Math.max(...funcionarios.map(f => f.id), 0) + 1;
+    setFuncionarios([...funcionarios, { id: novoId, nome: "", cargo: "Mestre de Obra" }]);
   };
 
-  const handleRemoverFuncionario = (idFunc, e) => {
+  const handleRemoverFuncionario = (id, e) => {
     e.preventDefault();
     if (funcionarios.length > 1) {
-      if (funcionariosOriginais.some(o => o.id === idFunc)) {
-        setFuncionariosDeletados(prev => [...prev, idFunc]);
-      }
-      setFuncionarios(funcionarios.filter(func => func.id !== idFunc));
+      setFuncionarios(funcionarios.filter(func => func.id !== id));
     }
   };
 
-  const handleSalvar = async (e) => {
+  const handleSalvar = (e) => {
     e.preventDefault();
-
-    const payloadProjeto = {
-      descricao: formData.descricao,
-      rua: formData.rua,
-      bairro: formData.bairro,
-      numero: formData.numero,
-      complemento: formData.complemento,
-      dataEntrega: formData.dataConclussaoEstimada 
-        ? `${formData.dataConclussaoEstimada}T00:00:00.000Z` 
-        : undefined,
-    };
-
-    try {
-      await api.put(`/projects/${id}`, payloadProjeto);
-
-      const promisesDelete = funcionariosDeletados.map(idFunc =>
-        api.delete(`/projects/${id}/employees/${idFunc}`)
-      );
-
-      const promisesUpsert = funcionarios.map(func => {
-        const original = funcionariosOriginais.find(o => o.id === func.id);
-
-        if (!original) {
-          if (func.nome.trim()) {
-            return api.post(`/projects/${id}/employees`, {
-              nomeFunc: func.nome.trim(),
-              cargo: func.cargo
-            });
-          }
-        } else if (original.nome !== func.nome || original.cargo !== func.cargo) {
-          return api.put(`/projects/${id}/employees/${func.id}`, {
-            nomeFunc: func.nome.trim(),
-            cargo: func.cargo
-          });
-        }
-        return null;
-      }).filter(Boolean);
-
-      await Promise.all([...promisesDelete, ...promisesUpsert]);
-
-      alert("Informações do projeto e funcionários atualizados com sucesso!");
-      navigate(`/projetos/${id}`);
-    } catch (error) {
-      console.error("Erro ao salvar alterações:", error);
-      const erros = Array.isArray(error.response?.data?.errors)
-        ? error.response.data.errors.map((item) => `${item.field}: ${item.message}`).join("\n")
-        : "";
-      const mensagemApi = error.response?.data?.message || "Erro ao salvar as informações.";
-      alert(`Falha ao salvar as alterações.\n\nMensagem: ${mensagemApi}${erros ? `\n\nErros:\n${erros}` : ""}`);
-    }
+    console.log("Salvando alterações do projeto:", formData, funcionarios);
+    alert("Informações do projeto salvas com sucesso!");
+    navigate(`/projetos/${id}`);
   };
 
   const handleCancelar = (e) => {
     e.preventDefault();
-    setFormData({ ...formDataOriginal });
-    setFuncionarios(funcionariosOriginais.map(f => ({ ...f })));
-    setFuncionariosDeletados([]);
-    // AJUSTE: Redireciona de volta para a tela de detalhes do projeto
-    navigate(`/projetos/${id}`);
+    setFormData(initialFormData);
+    setFuncionarios([{ id: 1, nome: "", cargo: "Mestre de Obra" }]);
   };
-
-  if (carregando) {
-    return (
-      <div className="h-svh flex flex-col overflow-hidden">
-        <MenuInicial />
-        <div className="flex flex-1 overflow-hidden">
-          <BarraLateral onLogout={onLogout} />
-          <main className="w-full overflow-y-auto px-8 py-6 bg-gray-100 flex items-center justify-center">
-            <div className="text-gray-600 font-semibold">Carregando dados do projeto...</div>
-          </main>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-svh flex flex-col overflow-hidden">
@@ -251,15 +153,21 @@ export default function AlteracoesProjeto({ onLogout }) {
       <div className="flex flex-1 overflow-hidden">
         <BarraLateral onLogout={onLogout} />
         <main className="w-full overflow-y-auto px-8 py-6 bg-gray-100">
+          
+
           <form onSubmit={handleSalvar} className="space-y-8">
+            
+
             {/* Informações do Projeto */}
             <section className="bg-white p-6 rounded-lg shadow-sm space-y-4">
+              {/* Nome do Projeto */}
               <div>
-                <div className="mb-6">
-                  <h1 className="text-2xl font-bold text-blue-900">
-                    Alterar Informações do Projeto
-                  </h1>
-                </div>
+                {/* Título */}
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-blue-900">
+                Alterar Informações do Projeto
+              </h1>
+            </div>
                 <label className="block text-sm font-semibold text-red-600 mb-2">
                   Nome do Projeto*
                 </label>
@@ -268,10 +176,12 @@ export default function AlteracoesProjeto({ onLogout }) {
                   name="nomeProjeto"
                   value={formData.nomeProjeto}
                   onChange={handleInputChange}
+                  placeholder="Apartamento do Gabriel"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                 />
               </div>
 
+              {/* Descrição */}
               <div>
                 <label className="block text-sm font-semibold text-red-600 mb-2">
                   Descrição
@@ -280,11 +190,13 @@ export default function AlteracoesProjeto({ onLogout }) {
                   name="descricao"
                   value={formData.descricao}
                   onChange={handleInputChange}
+                  placeholder="Apartamento aconchegante e futurista com instalações da natureza. A estética e design evoca a câmara do campo afastada de forma aglomerada à agitação advinda dos populosos centros urbanos."
                   rows="3"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                 />
               </div>
 
+              {/* Rua e Bairro */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-red-600 mb-2">
@@ -295,6 +207,7 @@ export default function AlteracoesProjeto({ onLogout }) {
                     name="rua"
                     value={formData.rua}
                     onChange={handleInputChange}
+                    placeholder="Rua Edmundo Ferreira Cosme"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -307,11 +220,13 @@ export default function AlteracoesProjeto({ onLogout }) {
                     name="bairro"
                     value={formData.bairro}
                     onChange={handleInputChange}
+                    placeholder="Padre Aísio Menezes"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
+              {/* Número, Complemento e Tipo de Construção */}
               <div className="grid grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-red-600 mb-2">
@@ -322,6 +237,7 @@ export default function AlteracoesProjeto({ onLogout }) {
                     name="numero"
                     value={formData.numero}
                     onChange={handleInputChange}
+                    placeholder="270"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -334,6 +250,7 @@ export default function AlteracoesProjeto({ onLogout }) {
                     name="complemento"
                     value={formData.complemento}
                     onChange={handleInputChange}
+                    placeholder="Apto 102"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -348,12 +265,15 @@ export default function AlteracoesProjeto({ onLogout }) {
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 bg-white"
                   >
                     {TIPOS_CONSTRUCAO.map(tipo => (
-                      <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
+                      <option key={tipo.value} value={tipo.value}>
+                        {tipo.label}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
 
+              {/* Data de Início, Data de Conclusão e Número do ART */}
               <div className="grid grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-red-600 mb-2">
@@ -388,6 +308,7 @@ export default function AlteracoesProjeto({ onLogout }) {
                     name="numeroART"
                     value={formData.numeroART}
                     onChange={handleInputChange}
+                    placeholder="06 2028 1234567"
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -396,30 +317,38 @@ export default function AlteracoesProjeto({ onLogout }) {
 
             {/* Funcionários da Obra */}
             <section className="bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-lg font-bold text-blue-900 mb-6">Funcionários da Obra</h2>
+              <h2 className="text-lg font-bold text-blue-900 mb-6">
+                Funcionários da Obra
+              </h2>
 
               <div className="space-y-4 mb-4">
                 {funcionarios.map((funcionario) => (
                   <div key={funcionario.id} className="flex gap-6 items-end">
                     <div className="flex-1">
-                      <label className="block text-sm font-semibold text-red-600 mb-2">Nome do Funcionário*</label>
+                      <label className="block text-sm font-semibold text-red-600 mb-2">
+                        Nome do Funcionário*
+                      </label>
                       <input
                         type="text"
                         value={funcionario.nome}
                         onChange={(e) => handleFuncionarioChange(funcionario.id, 'nome', e.target.value)}
-                        placeholder="Nome do profissional"
+                        placeholder="Samuel Sobrenome Oliveira"
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="block text-sm font-semibold text-red-600 mb-2">Cargo*</label>
+                      <label className="block text-sm font-semibold text-red-600 mb-2">
+                        Cargo*
+                      </label>
                       <select
                         value={funcionario.cargo}
                         onChange={(e) => handleFuncionarioChange(funcionario.id, 'cargo', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 bg-white"
                       >
                         {CARGOS.map(cargo => (
-                          <option key={cargo.value} value={cargo.value}>{cargo.label}</option>
+                          <option key={cargo.value} value={cargo.value}>
+                            {cargo.label}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -437,6 +366,7 @@ export default function AlteracoesProjeto({ onLogout }) {
                 ))}
               </div>
 
+              {/* Botão para adicionar funcionário */}
               <div className="flex justify-center mt-6">
                 <button
                   type="button"

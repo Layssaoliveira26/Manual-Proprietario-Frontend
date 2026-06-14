@@ -1,54 +1,66 @@
-import { useState } from 'react'; 
+import { useState, useEffect } from 'react'; 
 import BarraLateral from "../components/BarraLateral"
 import MenuInicial from "../components/MenuInicial"
 import { MdOutlineEngineering } from "react-icons/md";
 import { LuUpload } from "react-icons/lu";
-import { Link, useLocation, useParams } from "react-router-dom";
-import { projetosDetalhesMock } from "../mocks/projetosDetalhes";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
+import api from "../services/api";
+import { ValidateRequired, ValidatePastOrTodayDate } from "../utils/validations";
 
 const DISCIPLINAS = [
-  { value: "Arquitetônica", label: "Arquitetônica" },
-  { value: "Estrutural", label: "Estrutural" },
-  { value: "Hidrossanitária", label: "Hidrossanitária" },
-  { value: "Elétrica", label: "Elétrica" }
+  { value: "ARQUITETÔNICA", label: "Arquitetônica" },
+  { value: "ESTRTURAL", label: "Estrutural" },
+  { value: "HIDROSSANITÁRIA", label: "Hidrossanitária" },
+  { value: "ELÉTRICA", label: "Elétrica" }
 ];
-
-// Funcionários mockados para testar o dropdown
-const FUNCIONARIOS_POR_PROJETO = {
-  "default": [
-    { id: 1, nome: "Samuel Sobrenome Oliveira" },
-    { id: 2, nome: "João Silva" },
-    { id: 3, nome: "Maria Santos" },
-    { id: 4, nome: "Pedro Costa" }
-  ]
-};
 
 export default function AlteraçõesComodos({ onLogout }) {
   const location = useLocation();
-  const { id: projetoId, idComodo } = useParams();
-  const projeto = location.state?.projeto ?? projetosDetalhesMock[projetoId];
-  const comodo = location.state?.comodo ?? projeto?.comodos?.find((item) => `${item.id}` === idComodo) ?? null;
-  const tituloComodo = comodo?.nome ?? "[nome do Cômodo]";
+  const { id: projetoId } = useParams();
+  const navigate = useNavigate();
+  const idProjeto = useParams();
+  const comodo = location.state?.comodo ?? null;
+  const projeto = location.state?.projeto ?? null;
+  const [errors, setErrors] = useState({});
 
   const funcionariosIniciais = location.state?.funcionarios && Array.isArray(location.state.funcionarios)
     ? location.state.funcionarios.map((func, index) => ({
         id: func.id ?? `funcionario-${index}`,
         nome: func.nome || "Sem nome"
       }))
-    : FUNCIONARIOS_POR_PROJETO.default;
+    : []
   
   const [formData, setFormData] = useState({
     nomeAlteracao: "",
     descricao: "",
     dataAlteracao: "",
-    disciplina: "Arquitetônica",
+    disciplina: "",
     arquivo: null,
     descricaoFoto: "",
     funcionarioResponsavel: ""
   });
 
-  const [funcionarios] = useState(funcionariosIniciais);
+  const [funcionarios, setFuncionarios] = useState([]);
+  const [loadingFuncionarios, setLoadingFuncionarios] = useState(true);
+  const [salvando, setSalvando] = useState(false);
   const [registrosFoto, setRegistrosFoto] = useState([]);
+
+  useEffect(() => {
+    const buscaFuncionarios = async () => {
+      try {
+        setLoadingFuncionarios(true);
+        const response = await api.get(`/projects/${projetoId}`);
+        setFuncionarios(response.data.data?.funcionarios ?? []);
+      }
+      catch (error){
+        console.log("Erro ao buscar funcionários:", error);
+      }
+      finally {
+        setLoadingFuncionarios(false);
+      }
+    }
+    buscaFuncionarios();
+  }, [projetoId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -70,11 +82,11 @@ export default function AlteraçõesComodos({ onLogout }) {
 
   const handleAdicionarFoto = (e) => {
     e.preventDefault();
-    if (formData.arquivo && formData.descricaoFoto) {
+    if (formData.arquivo) {
       setRegistrosFoto(prev => [...prev, {
         id: Date.now(),
         arquivo: formData.arquivo.name,
-        descricao: formData.descricaoFoto,
+        descricao: formData.descricaoFoto || "Sem descrição",
         file: formData.arquivo
       }]);
       setFormData(prev => ({
@@ -82,8 +94,8 @@ export default function AlteraçõesComodos({ onLogout }) {
         arquivo: null,
         descricaoFoto: ""
       }));
-      // Limpar o input file
-      const fileInput = document.querySelector('input[type="file"]');
+      
+      const fileInput = document.getElementById('fileInput');
       if (fileInput) fileInput.value = '';
     }
   };
@@ -92,10 +104,56 @@ export default function AlteraçõesComodos({ onLogout }) {
     setRegistrosFoto(prev => prev.filter(foto => foto.id !== id));
   };
 
-  const handleSalvar = (e) => {
+  const handleSalvar = async (e) => {
     e.preventDefault();
-    console.log("Salvando alteração:", formData, registrosFoto);
-    alert("Alteração salva com sucesso!");
+    const newErrors = {};
+
+    const nomeErro = ValidateRequired(formData.nomeAlteracao, "Nome da Alteração");
+    if (nomeErro) newErrors.nomeAlteracao = nomeErro;
+
+    const descErro = ValidateRequired(formData.descricao, "Descrição");
+    if (descErro) newErrors.descricao = descErro;
+
+    const dataErro = ValidatePastOrTodayDate(formData.dataAlteracao);
+    if (dataErro) newErrors.dataAlteracao = dataErro;
+
+    const discErro = ValidateRequired(formData.disciplina, "Disciplina da Alteração");
+    if (discErro) newErrors.disciplina = discErro;
+
+    const funcErro = ValidateRequired(formData.funcionarioResponsavel, "Funcionário Responsável");
+    if (funcErro) newErrors.funcionarioResponsavel = funcErro;
+
+    const temArquivoPendente = formData.arquivo !== null;
+
+    if (registrosFoto.length === 0 && !temArquivoPendente) {
+      newErrors.arquivo = "É obrigatório anexar pelo menos um arquivo.";
+    }
+
+    if (Object.keys(newErrors).length > 0 ) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
+
+    try {
+      setSalvando(true);
+      const todosArquivosParaSalvar = [...registrosFoto];
+      if (temArquivoPendente) {
+          todosArquivosParaSalvar.push({
+              id: Date.now(),
+              arquivo: formData.arquivo.name,
+              descricao: formData.descricaoFoto || "Sem descrição",
+              file: formData.arquivo
+          });
+      }
+      alert("Alteração feita com sucesso!");
+      navigate(-1);
+      console.log("Salvando alteração:", formData, todosArquivosParaSalvar);
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+    } finally {
+      setSalvando(false);
+    }
   };
 
   const handleCancelar = (e) => {
@@ -110,7 +168,7 @@ export default function AlteraçõesComodos({ onLogout }) {
       funcionarioResponsavel: ""
     });
     setRegistrosFoto([]);
-    // Limpar o input file
+    
     const fileInput = document.querySelector('input[type="file"]');
     if (fileInput) fileInput.value = '';
   };
@@ -130,17 +188,14 @@ export default function AlteraçõesComodos({ onLogout }) {
               <div className="pb-4 border-b border-gray-200">
                 <div className="mb-2 font-semibold text-sm" style={{ color: '#C15A3E' }}>As-Built</div>
                 <h1 className="text-2xl font-bold text-blue-900">
-                  Alteração no Cômodo - {tituloComodo}
+                  Alteração no Cômodo - {comodo.nome}
                 </h1>
-                {projeto?.titulo ? (
-                  <p className="mt-2 text-sm text-gray-500">Projeto: {projeto.titulo}</p>
-                ) : null}
               </div>
 
               {/* Nome da Alteração */}
               <div>
                 <label className="block text-sm font-semibold text-red-600 mb-2">
-                  Nome da Alteração
+                  Nome da Alteração*
                 </label>
                 <input
                   type="text"
@@ -148,14 +203,16 @@ export default function AlteraçõesComodos({ onLogout }) {
                   value={formData.nomeAlteracao}
                   onChange={handleInputChange}
                   placeholder="Nome da Alteração"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-                />
+                  className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 ${errors.nomeAlteracao ? 'border-red-500' : 'border-gray-300'}`}                />
+                {errors.nomeAlteracao && (
+                  <span className="text-red-500 text-xs mt-1 block">{errors.nomeAlteracao}</span>
+                )}
               </div>
 
               {/* Descrição e Justificativa */}
               <div>
                 <label className="block text-sm font-semibold text-red-600 mb-2">
-                  Descrição/Justificativa
+                  Descrição/Justificativa*
                 </label>
                 <textarea
                   name="descricao"
@@ -163,40 +220,50 @@ export default function AlteraçõesComodos({ onLogout }) {
                   onChange={handleInputChange}
                   placeholder="Descrição/Justificativa"
                   rows="4"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                  className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 ${errors.descricao ? 'border-red-500' : 'border-gray-300'}`}
                 />
+                {errors.descricao && (
+                  <span className="text-red-500 text-xs mt-1 block">{errors.descricao}</span>
+                )}
               </div>
 
               {/* Data e Disciplina */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-red-600 mb-2">
-                    Data da Alteração
+                    Data da Alteração*
                   </label>
                   <input
                     type="date"
                     name="dataAlteracao"
                     value={formData.dataAlteracao}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 ${errors.dataAlteracao ? 'border-red-500' : 'border-gray-300'}`}
                   />
+                  {errors.dataAlteracao && (
+                    <span className="text-red-500 text-xs mt-1 block">{errors.dataAlteracao}</span>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-red-600 mb-2">
-                    Disciplina da Alteração
+                    Disciplina da Alteração*
                   </label>
                   <select
                     name="disciplina"
                     value={formData.disciplina}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 bg-white"
+                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 bg-white ${errors.disciplina ? 'border-red-500' : 'border-gray-300'}`}
                   >
+                    <option value="">Selecione uma disciplina</option>
                     {DISCIPLINAS.map(disc => (
                       <option key={disc.value} value={disc.value}>
                         {disc.label}
                       </option>
                     ))}
                   </select>
+                  {errors.disciplina && (
+                    <span className="text-red-500 text-xs mt-1 block">{errors.disciplina}</span>
+                  )}
                 </div>
               </div>
             </section>
@@ -209,7 +276,7 @@ export default function AlteraçõesComodos({ onLogout }) {
               <div className="grid grid-cols-2 gap-6 mb-4">
                 <div>
                   <label className="block text-sm font-semibold text-red-600 mb-2">
-                    Arquivo
+                    Arquivo*
                   </label>
                   <div className="relative">
                     <input
@@ -219,17 +286,20 @@ export default function AlteraçõesComodos({ onLogout }) {
                       accept="image/*,.pdf"
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
-                    <label
-                      htmlFor="fileInput"
-                      className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:border-gray-500"
-                      style={{ borderColor: '#A0AEC0' }}
+                    <div
+                      className={`flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:border-gray-500 ${errors.arquivo ? 'border-red-500' : 'border-gray-300'}`}
+                      style={!errors.arquivo ? { borderColor: '#A0AEC0' } : {}}
                     >
-                      <span className="text-gray-400">
+                      {/* Cor dinâmica: Se tem arquivo fica escuro, se não, fica cinza */}
+                      <span className={formData.arquivo ? "text-gray-800 font-medium" : "text-gray-400"}>
                         {formData.arquivo ? formData.arquivo.name : "Importar Arquivo"}
                       </span>
                       <LuUpload className="text-gray-400 text-lg" />
-                    </label>
+                    </div>
                   </div>
+                  {errors.arquivo && (
+                    <span className="text-red-500 text-xs mt-1 block">{errors.arquivo}</span>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-red-600 mb-2">
@@ -283,13 +353,13 @@ export default function AlteraçõesComodos({ onLogout }) {
             {/* Funcionário Responsável */}
             <section className="bg-white p-6 rounded-lg shadow-sm">
               <label className="block text-sm font-semibold text-red-600 mb-2">
-                Nome do Funcionário
+                Nome do Funcionário*
               </label>
               <select
                 name="funcionarioResponsavel"
                 value={formData.funcionarioResponsavel}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 bg-white"
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 bg-white ${errors.funcionarioResponsavel ? 'border-red-500' : 'border-gray-300'}`}
               >
                 <option value="">Selecione um funcionário</option>
                 {funcionarios.map(func => (
@@ -298,6 +368,9 @@ export default function AlteraçõesComodos({ onLogout }) {
                   </option>
                 ))}
               </select>
+              {errors.funcionarioResponsavel && (
+                <span className="text-red-500 text-xs mt-1 block">{errors.funcionarioResponsavel}</span>
+              )}
             </section>
 
             {/* Botões de Ação */}
