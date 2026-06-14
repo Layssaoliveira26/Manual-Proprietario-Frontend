@@ -154,3 +154,25 @@ export const ValidatePastOrTodayDate = (dateString) => {
     }
     return "";
 };
+
+/* Valida se a data de alteração é posterior à data de início do projeto */
+export const ValidateAfterProjectStart = (dataAlteracao, dataInicioProjeto) => {
+  if (!dataAlteracao || !dataInicioProjeto) return null;
+
+  const alteracao = new Date(dataAlteracao);
+
+  // Suporta "dd/mm/aaaa" e "aaaa-mm-dd"
+  let inicio;
+  if (dataInicioProjeto.includes("/")) {
+    const [dia, mes, ano] = dataInicioProjeto.split("/");
+    inicio = new Date(`${ano}-${mes}-${dia}`);
+  } else {
+    inicio = new Date(dataInicioProjeto);
+  }
+
+  if (alteracao < inicio) {
+    return `A data da alteração não pode ser anterior ao início da obra (${dataInicioProjeto}).`;
+  }
+  
+  return null;
+};

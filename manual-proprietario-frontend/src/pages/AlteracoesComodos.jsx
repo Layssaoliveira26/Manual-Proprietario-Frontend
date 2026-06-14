@@ -5,7 +5,7 @@ import { MdOutlineEngineering } from "react-icons/md";
 import { LuUpload } from "react-icons/lu";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import api from "../services/api";
-import { ValidateRequired, ValidatePastOrTodayDate } from "../utils/validations";
+import { ValidateRequired, ValidatePastOrTodayDate, ValidateAfterProjectStart } from "../utils/validations";
 
 const DISCIPLINAS = [
   { value: "ARQUITETÔNICA", label: "Arquitetônica" },
@@ -114,9 +114,10 @@ export default function AlteraçõesComodos({ onLogout }) {
     const descErro = ValidateRequired(formData.descricao, "Descrição");
     if (descErro) newErrors.descricao = descErro;
 
-    const dataErro = ValidatePastOrTodayDate(formData.dataAlteracao);
+    const dataErro = ValidatePastOrTodayDate(formData.dataAlteracao) 
+    || ValidateAfterProjectStart(formData.dataAlteracao, projeto?.dataInicio);
     if (dataErro) newErrors.dataAlteracao = dataErro;
-
+    
     const discErro = ValidateRequired(formData.disciplina, "Disciplina da Alteração");
     if (discErro) newErrors.disciplina = discErro;
 
