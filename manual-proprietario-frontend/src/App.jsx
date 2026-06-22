@@ -9,6 +9,11 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 import Manuais from './pages/Manuais';
 import Projetos from './pages/Projetos';
+import Materiais from './pages/Materiais';
+import MateriaisDetalhes from './pages/MateriaisDetalhes';
+import AdicionarMaterial from './pages/AdicionarMaterial';
+import EditarMaterial from './pages/EditarMaterial';
+import MinhaConta from './pages/MinhaConta';
 import CadastroProjeto from './pages/CadastroProjeto';
 import CadastroProjeto2 from './pages/CadastroProjeto2';
 import CadastroProjeto3 from './pages/CadastroProjeto3';
@@ -27,7 +32,6 @@ function App() {
 
     try {
       const decoded = jwtDecode(token);
-      // Verifica se o token não expirou
       if (decoded.exp * 1000 < Date.now()) {
         localStorage.removeItem("token");
         return null;
@@ -108,6 +112,29 @@ function App() {
           path="/projetos/:id/alteracoes"
           element={user ? <AlteracoesProjeto onLogout={handleLogout}/> : <Navigate to="/login" />}
         />
+
+        {/* Rotas de Materiais */}
+        <Route
+          path="/materiais"
+          element={user ? <Materiais onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/materiais/:id"
+          element={user ? <MateriaisDetalhes onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/materiais/:id/adicionar"
+          element={user ? <AdicionarMaterial onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/materiais/:id/editar/:materialId"
+          element={user ? <EditarMaterial onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/minha-conta"
+          element={user ? <MinhaConta onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+
         <Route
           path="/cadastro-projeto"
           element={user ? <CadastroProjeto onLogout={handleLogout}/> : <Navigate to="/login" />}

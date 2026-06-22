@@ -34,9 +34,17 @@ function BarraLateral( {onLogout} ) {
                     Projetos
                 </NavLink>
             </h6>
-            <h6>Materiais</h6>
+            <h6>
+                <NavLink to="/materiais" className={({ isActive }) => (isActive ? "active" : "")}>
+                    Materiais
+                </NavLink>
+            </h6>
             <hr className="border-t-3 border-[#dcdcdc] my-5 mx-10"/>
-            <h6 className="text">Minha Conta</h6>
+            <h6 className="text">
+                <NavLink to="/minha-conta" className={({ isActive }) => (isActive ? "active" : "")}>
+                    Minha Conta
+                </NavLink>
+            </h6>
             <h6 className="h6-sair cursor-pointer" onClick={onLogout}>Sair</h6>
         </div>
     )
