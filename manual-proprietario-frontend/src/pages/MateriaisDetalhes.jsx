@@ -1,11 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
 import { IoSettingsOutline } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { materiaisDetalhesMock, AREAS } from "../mocks/materiaisDetalhesMock";
-import { projetosMock } from '../mocks/projetos';
+import { projetosMock } from "../mocks/projetos";
+
+function getRoleAtual() {
+    try {
+        const token = localStorage.getItem("token");
+        if (!token) return null;
+        const decoded = jwtDecode(token);
+        return decoded?.profile ?? null;
+    } catch {
+        return null;
+    }
+}
 
 const AREA_CORES = {
     "Pinturas":       { bg: "#3B4FA8", text: "#fff" },
@@ -37,6 +49,7 @@ function BadgeArea({ area }) {
 function MateriaisDetalhes({ onLogout }) {
     const { id } = useParams();
     const navigate = useNavigate();
+    const isProprietario = getRoleAtual() === "PROPRIETARIO";
 
     const projeto = projetosMock.find((p) => p.id === id);
     const todosMateriais = materiaisDetalhesMock[id] ?? [];
@@ -59,6 +72,7 @@ function MateriaisDetalhes({ onLogout }) {
                 <BarraLateral onLogout={onLogout} />
                 <main className="w-full overflow-y-auto px-10 py-8">
 
+                    {/* Breadcrumb */}
                     <nav className="text-sm text-gray-400 mb-6 flex items-center gap-1">
                         <span
                             className="cursor-pointer hover:text-gray-600 transition-colors"
@@ -75,11 +89,13 @@ function MateriaisDetalhes({ onLogout }) {
                     {/* Título + botão */}
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="page-title pl-2">Materiais</h3>
-                        <Link to={`/materiais/${id}/adicionar`}>
-                            <button className="text-md px-4 h-10 rounded-sm border-2 font-semibold border-(--cor-azul) text-(--cor-azul) hover:bg-(--cor-azul) hover:text-white transition-all">
-                                Adicionar material
-                            </button>
-                        </Link>
+                        {!isProprietario && (
+                            <Link to={`/materiais/${id}/adicionar`}>
+                                <button className="text-md px-4 h-10 rounded-sm border-2 font-semibold border-(--cor-azul) text-(--cor-azul) hover:bg-(--cor-azul) hover:text-white transition-all">
+                                    Adicionar material
+                                </button>
+                            </Link>
+                        )}
                     </div>
 
                     {/* Filtros por área */}
@@ -135,13 +151,15 @@ function MateriaisDetalhes({ onLogout }) {
                                             <td className="py-5 px-6">
                                                 <div className="flex items-center justify-between gap-4">
                                                     <span>{item.ultimaAtualizacao}</span>
-                                                    <IoSettingsOutline
-                                                        className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            navigate(`/materiais/${id}/editar/${item.id}`);
-                                                        }}
-                                                    />
+                                                    {!isProprietario && (
+                                                        <IoSettingsOutline
+                                                            className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigate(`/materiais/${id}/editar/${item.id}`);
+                                                            }}
+                                                        />
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
