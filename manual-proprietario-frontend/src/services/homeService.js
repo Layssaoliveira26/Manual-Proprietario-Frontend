@@ -1,40 +1,26 @@
-import api from "./api";
+import { listarProjetos } from './projectsService';
 
-const statusTraduzido = {
-    "EM_CONSTRUCAO": "Em construção",
-    "ENTREGUE": "Entregue",
-    "DESATIVADO": "Desativado",
-    "PENDENTE": "Pendente"
-};
+/**
+ * Busca os dados para o dashboard (Home).
+ * Retorna projetos e manuais separados, pois a tela os exibe em tabelas distintas.
+ *
+ * Nota: enquanto a API não expõe um endpoint dedicado a manuais (/manuals),
+ * manuais e projetos apontam para a mesma origem (/projects). Quando o endpoint
+ * de manuais for criado basta substituir a chamada abaixo.
+ *
+ * @param {string} [searchTerm='']
+ * @returns {Promise<{ projetos: object[], manuais: object[] }>}
+ */
+export async function buscarDadosDashboard(searchTerm = '') {
+    const projetos = await listarProjetos(searchTerm);
 
-export const buscarDadosDashboard = async (searchTerm = "") => {
-    try {
-        const params = {};
+    // Manuais: mesmo endpoint por enquanto — cada projeto carrega seu manual.
+    // O shape esperado pela tabela de manuais em Home.jsx usa "manual" como
+    // label do nome, então fazemos o alias aqui para não alterar o JSX.
+    const manuais = projetos.map((p) => ({
+        ...p,
+        manual: p.nomeProjeto,   // alias: campo exibido na coluna MANUAL
+    }));
 
-        if (searchTerm) {
-            params.search = searchTerm;
-        }
-
-        const resposta = await api.get('/projects', { params });
-        const projetosBrutos = resposta.data?.data || [];
-
-        const projetosFormatados = projetosBrutos.map(proj => ({
-            id: proj.id,
-            projeto: proj.nomeProjeto ?? "Projeto sem nome",
-            responsavel: proj.responsavel ?? "Não informado",
-            status: statusTraduzido[proj.status] || proj.status,
-            ultimaAtualizacao: proj.ultimaAtualizacao
-                ? new Date(proj.ultimaAtualizacao).toLocaleDateString('pt-BR')
-                : "Sem data"
-        }));
-
-        return {
-            projetos: projetosFormatados,
-            manuais: projetosFormatados.map(p => ({ ...p, manual: p.projeto }))
-        };
-
-    } catch (error) {
-        console.error("buscarDadosDashboard:", error.response?.data?.message ?? error.message);
-        throw error;
-    }
-};
+    return { projetos, manuais };
+}

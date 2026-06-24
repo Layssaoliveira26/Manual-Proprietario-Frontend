@@ -9,10 +9,10 @@ import { IoSettingsOutline, IoEyeOutline } from "react-icons/io5";
 
 function getClasseStatus(status) {
     switch (status) {
-        case "Em construção": return "td-construcao";
-        case "Entregue":      return "td-entregue";
-        case "Desativado":    return "td-desativado";
-        default:              return "td-pendente";
+        case 'Em construção': return 'td-construcao';
+        case 'Entregue':      return 'td-entregue';
+        case 'Desativado':    return 'td-desativado';
+        default:              return 'td-pendente';
     }
 }
 
@@ -85,6 +85,7 @@ function Home({ onLogout }) {
                                 {manuais.length > 0 ? (
                                     manuais.map((manual) => (
                                         <tr key={manual.id}>
+                                            {/* manual.manual é o alias de nomeProjeto criado no homeService */}
                                             <td className="py-5 px-6">{manual.manual}</td>
                                             <td className="py-5 px-6">{manual.responsavel}</td>
                                             <td className="py-5">
@@ -141,7 +142,8 @@ function Home({ onLogout }) {
                                         {projetos.length > 0 ? (
                                             projetos.map((projeto) => (
                                                 <tr key={projeto.id}>
-                                                    <td className="py-5 px-6">{projeto.projeto}</td>
+                                                    {/* projeto.nomeProjeto: campo real da API, normalizado pelo projectsService */}
+                                                    <td className="py-5 px-6">{projeto.nomeProjeto}</td>
                                                     <td className="py-5 px-6">{projeto.responsavel}</td>
                                                     <td className="py-5">
                                                         <div className={getClasseStatus(projeto.status)}>
