@@ -1,11 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import BarraLateral from "../components/BarraLateral";
-import MenuInicial from "../components/MenuInicial";
-import { AREAS } from "../mocks/materiaisDetalhesMock";
-import { materiaisDetalhesMock } from "../mocks/materiaisDetalhesMock";
-
-const AREAS_SEM_TODOS = AREAS.filter((a) => a !== "Todos");
+import BarraLateral from '../components/BarraLateral';
+import MenuInicial from '../components/MenuInicial';
+import { AREAS_SEM_TODOS, buscarMaterialPorId } from '../services/materialsService';
 
 const COMODOS_POR_ANDAR = {
     "Térreo":         ["Sala de estar", "Cozinha", "Lavabo", "Escritório", "Sala de Jantar", "Banheiro"],
@@ -21,35 +18,68 @@ function EditarMaterial({ onLogout }) {
     const { id, materialId } = useParams();
     const navigate = useNavigate();
 
-    // Busca o material pelo id do projeto + materialId
-    const todosMateriais = materiaisDetalhesMock[id] ?? [];
-    const materialOriginal = todosMateriais.find((m) => m.id === materialId);
-
-    // Infere andar e cômodos a partir do campo `comodo` do mock
-    const comodoOriginalStr = materialOriginal?.comodo ?? "";
-    const comodosSalvos = comodoOriginalStr.split(",").map((c) => c.trim()).filter(Boolean);
-
-    const inferirAndar = () => {
-        for (const [andar, lista] of Object.entries(COMODOS_POR_ANDAR)) {
-            if (comodosSalvos.some((c) => lista.includes(c))) return andar;
-        }
-        return "Térreo";
-    };
+    const [carregando,  setCarregando]  = useState(true);
+    const [erro,        setErro]        = useState(null);
 
     const [form, setForm] = useState({
-        nome:       materialOriginal?.material   ?? "",
-        referencia: materialOriginal?.referencia ?? "",
-        lote:       materialOriginal?.lote       ?? "",
-        marca:      materialOriginal?.marca      ?? "",
-        tamanho:    materialOriginal?.tamanho    ?? "",
-        tipo:       materialOriginal?.tipo       ?? "",
-        cor:        materialOriginal?.cor        ?? "",
-        descricao:  materialOriginal?.descricao  ?? "",
+        nome:       '',
+        referencia: '',
+        lote:       '',
+        marca:      '',
+        tamanho:    '',
+        tipo:       '',
+        cor:        '',
+        descricao:  '',
     });
 
-    const [areaSelecionada, setAreaSelecionada] = useState(materialOriginal?.area ?? null);
-    const [andarSelecionado, setAndarSelecionado] = useState(inferirAndar);
-    const [comodosSelecionados, setComodosSelecionados] = useState(comodosSalvos);
+    const [areaSelecionada,    setAreaSelecionada]    = useState(null);
+    const [andarSelecionado,   setAndarSelecionado]   = useState('Térreo');
+    const [comodosSelecionados, setComodosSelecionados] = useState([]);
+
+    // Busca os dados reais do material na API ao montar
+    useEffect(() => {
+        let ativo = true;
+
+        const fetchMaterial = async () => {
+            try {
+                setCarregando(true);
+                setErro(null);
+
+                const material = await buscarMaterialPorId(id, materialId);
+
+                if (!ativo) return;
+
+                setForm({
+                    nome:       material.nomeMaterial !== '—' ? material.nomeMaterial : '',
+                    referencia: material.referencia  !== '—' ? material.referencia  : '',
+                    lote:       material.lote,
+                    marca:      material.marca       !== '—' ? material.marca       : '',
+                    tamanho:    material.tamanho,
+                    tipo:       material.tipo,
+                    cor:        material.cor,
+                    descricao:  material.descricao,
+                });
+
+                setAreaSelecionada(material.area !== '—' ? material.area : null);
+
+                // Pré-seleciona cômodos a partir do array normalizado
+                const nomesComodos = (material.comodosArray ?? []).map(
+                    (c) => c.nomeComodo ?? c.nome ?? ''
+                ).filter(Boolean);
+                setComodosSelecionados(nomesComodos);
+
+            } catch (err) {
+                if (!ativo) return;
+                console.error('[EditarMaterial] Erro ao carregar material:', err);
+                setErro('Não foi possível carregar os dados do material.');
+            } finally {
+                if (ativo) setCarregando(false);
+            }
+        };
+
+        fetchMaterial();
+        return () => { ativo = false; };
+    }, [id, materialId]);
 
     const handleField = (e) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -72,6 +102,35 @@ function EditarMaterial({ onLogout }) {
     };
 
     const comodos = COMODOS_POR_ANDAR[andarSelecionado] ?? [];
+
+    // --- estados de carregamento e erro ---
+    if (carregando) {
+        return (
+            <div className="h-svh flex flex-col overflow-hidden">
+                <MenuInicial />
+                <div className="flex flex-1 overflow-hidden">
+                    <BarraLateral onLogout={onLogout} />
+                    <main className="w-full flex items-center justify-center">
+                        <p className="text-gray-400">Carregando material...</p>
+                    </main>
+                </div>
+            </div>
+        );
+    }
+
+    if (erro) {
+        return (
+            <div className="h-svh flex flex-col overflow-hidden">
+                <MenuInicial />
+                <div className="flex flex-1 overflow-hidden">
+                    <BarraLateral onLogout={onLogout} />
+                    <main className="w-full flex items-center justify-center">
+                        <p className="text-red-500 font-medium">{erro}</p>
+                    </main>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="h-svh flex flex-col overflow-hidden">

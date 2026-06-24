@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
-import { AREAS } from "../mocks/materiaisDetalhesMock";
-
-const AREAS_SEM_TODOS = AREAS.filter((a) => a !== "Todos");
+import { AREAS_SEM_TODOS } from '../services/materialsService';
 
 const COMODOS_POR_ANDAR = {
     "Térreo":         ["Sala de estar", "Cozinha", "Lavabo", "Escritório", "Sala de Jantar", "Banheiro"],
