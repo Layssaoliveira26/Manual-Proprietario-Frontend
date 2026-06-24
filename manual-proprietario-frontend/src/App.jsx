@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
@@ -72,6 +72,16 @@ function App() {
     localStorage.removeItem('token');
     setUser(null);
   };
+
+  // Escuta o CustomEvent disparado pelo interceptor do Axios quando a API
+  // retorna 401. Garante que o logout ocorra dentro do ciclo React,
+  // sem precisar de window.location.href (que causaria full reload).
+  useEffect(() => {
+    const onUnauthorized = () => handleLogout();
+    window.addEventListener('auth:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', onUnauthorized);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <BrowserRouter>
