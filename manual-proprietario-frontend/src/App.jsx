@@ -24,6 +24,7 @@ import ProjetosDetalhes from './pages/ProjetosDetalhes';
 import ProjetosComodo from './pages/ProjetosComodo';
 import AlteracoesProjeto from './pages/AlteracoesProjeto';
 import AlteracoesComodos from './pages/AlteracoesComodos';
+import VisualizarAlteracoesComodo from './pages/VisualizarAlteracoesComodo';
 
 function App() {
    const [user, setUser] = useState(() => {
@@ -146,6 +147,11 @@ function App() {
         <Route
           path="/cadastro-projeto3" 
           element={user ? <CadastroProjeto3 onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+
+        <Route
+        path="/projetos/:id/comodo/:idComodo/visualizar-alteracoes"
+        element={user ? <VisualizarAlteracoesComodo onLogout={handleLogout}/> : <Navigate to="/login" />}
         />
 
         {/* Rotas não encontradas */}
