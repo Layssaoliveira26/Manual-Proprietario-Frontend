@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import BarraLateral from '../components/BarraLateral';
 import MenuInicial from '../components/MenuInicial';
+import { ModalSucesso } from "../components/ModalSucesso";
+import { Paginacao } from '../components/Paginacao';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { MdOutlineHandyman } from 'react-icons/md';
 import { listarMateriaisPorProjeto, AREAS } from '../services/materialsService';
@@ -57,6 +59,7 @@ function BadgeArea({ area }) {
 function MateriaisDetalhes({ onLogout }) {
     const { id } = useParams();          // id do projeto
     const navigate = useNavigate();
+    const location = useLocation();
     const isProprietario = getRoleAtual() === 'PROPRIETARIO';
 
     // --- estados ---
@@ -66,6 +69,30 @@ function MateriaisDetalhes({ onLogout }) {
     const [areaSelecionada, setAreaSelecionada] = useState('Todos');
     const [carregando,     setCarregando]     = useState(true);
     const [erro,           setErro]           = useState(null);
+
+    const [modalSucesso, setModalSucesso] = useState(false);
+    const [mensagemSucesso, setMensagemSucesso] = useState("");
+    const [subtextoSucesso, setSubtextoSucesso] = useState("");
+
+    const [paginaAtual, setPaginaAtual] = useState(1);
+    const itensPorPagina = 10;
+
+    const indiceInicio = (paginaAtual - 1) * itensPorPagina;
+    const indiceFim = indiceInicio + itensPorPagina;
+    const materiaisPaginados = materiais.slice(indiceInicio, indiceFim);
+    const totalPaginas = Math.ceil(materiais.length / itensPorPagina);
+
+    //Verifica se o usuário veio da tela de Adicionar Material
+    useEffect(() => {
+        if (location.state?.sucessoMaterial) {
+            setMensagemSucesso("Material adicionado!");
+            setSubtextoSucesso(`O material ${location.state.nomeDoMaterial} foi adicionado ao projeto.`);
+            setModalSucesso(true);
+            
+            // Limpa o histórico para o modal não abrir novamente num F5
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
 
     // --- busca inicial: nome do projeto + materiais ---
     useEffect(() => {
@@ -133,7 +160,7 @@ function MateriaisDetalhes({ onLogout }) {
             );
         }
 
-        if (materiais.length === 0) {
+        if (materiaisPaginados.length === 0) {
             return (
                 <tr>
                     <td colSpan={4} className="py-10 px-6">
@@ -150,9 +177,9 @@ function MateriaisDetalhes({ onLogout }) {
             );
         }
 
-        return materiais.map((item) => (
+        return materiaisPaginados.map((item) => (
             <tr
-                key={item.id}
+                key={item.idMaterial}
                 className="hover:bg-gray-50 transition-colors"
             >
                 {/* Nome do material — exibe também marca e referência como subtexto */}
@@ -184,7 +211,7 @@ function MateriaisDetalhes({ onLogout }) {
                         {!isProprietario && (
                             <IoSettingsOutline
                                 className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600 transition-colors flex-shrink-0"
-                                onClick={() => navigate(`/materiais/${id}/editar/${item.id}`)}
+                                onClick={() => navigate(`/materiais/${id}/editar/${item.idMaterial}`)}
                             />
                         )}
                     </div>
@@ -202,20 +229,6 @@ function MateriaisDetalhes({ onLogout }) {
             <div className="flex flex-1 overflow-hidden">
                 <BarraLateral onLogout={onLogout} />
                 <main className="w-full overflow-y-auto px-10 py-8">
-
-                    {/* Breadcrumb */}
-                    <nav className="text-sm text-gray-400 mb-6 flex items-center gap-1">
-                        <span
-                            className="cursor-pointer hover:text-gray-600 transition-colors"
-                            onClick={() => navigate('/materiais')}
-                        >
-                            Materiais
-                        </span>
-                        <span className="mx-1">›</span>
-                        <span className="text-gray-700 font-medium">
-                            {nomeProjeto || 'Projeto'}
-                        </span>
-                    </nav>
 
                     {/* Título + botão Adicionar (só Construtor) */}
                     <div className="flex items-center justify-between mb-6">
@@ -272,7 +285,18 @@ function MateriaisDetalhes({ onLogout }) {
                             </tbody>
                         </table>
                     </div>
-
+                    { /* Modal de Sucesso */ }
+                    <ModalSucesso 
+                        isAberto={modalSucesso}
+                        mensagem={mensagemSucesso}
+                        subtexto={subtextoSucesso}
+                        onFechar={() => setModalSucesso(false)}
+                    />
+                    <Paginacao 
+                    paginaAtual={paginaAtual}
+                    totalPaginas={totalPaginas}
+                    onMudarPagina={setPaginaAtual}
+                    />
                 </main>
             </div>
         </div>

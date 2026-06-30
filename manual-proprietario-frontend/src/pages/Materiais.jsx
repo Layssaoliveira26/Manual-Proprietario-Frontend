@@ -4,6 +4,7 @@ import { MdOutlineHandyman } from 'react-icons/md';
 import { IoSettingsOutline } from 'react-icons/io5';
 import BarraLateral from '../components/BarraLateral';
 import MenuInicial from '../components/MenuInicial';
+import { Paginacao } from '../components/Paginacao';
 import { listarProjetos } from '../services/projectsService';
 
 // ---------------------------------------------------------------------------
@@ -27,6 +28,14 @@ function Materiais({ onLogout }) {
     const [erro,       setErro]       = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
+    const [paginaAtual, setPaginaAtual] = useState(1);
+    const itensPorPagina = 10;
+
+    const indiceInicio = (paginaAtual - 1) * itensPorPagina;
+    const indiceFim = indiceInicio + itensPorPagina;
+    const projetosPaginados = projetos.slice(indiceInicio, indiceFim);
+    const totalPaginas = Math.ceil(projetos.length / itensPorPagina);
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -43,6 +52,7 @@ function Materiais({ onLogout }) {
 
                 if (!ativo) return;
                 setProjetos(dados);
+                setPaginaAtual(1);
             } catch (err) {
                 if (!ativo) return;
                 console.error('[Materiais] Erro ao carregar:', err);
@@ -80,7 +90,7 @@ function Materiais({ onLogout }) {
             );
         }
 
-        if (projetos.length === 0) {
+        if (projetosPaginados.length === 0) {
             return (
                 <tr>
                     <td colSpan={4} className="py-10 px-6">
@@ -93,7 +103,7 @@ function Materiais({ onLogout }) {
             );
         }
 
-        return projetos.map((item) => (
+        return projetosPaginados.map((item) => (
             <tr
                 key={item.id}
                 className="cursor-pointer hover:bg-gray-50 transition-colors"
@@ -157,7 +167,11 @@ function Materiais({ onLogout }) {
                             </tbody>
                         </table>
                     </div>
-
+                    <Paginacao 
+                        paginaAtual={paginaAtual}
+                        totalPaginas={totalPaginas}
+                        onMudarPagina={setPaginaAtual}
+                    />
                 </main>
             </div>
         </div>

@@ -2,108 +2,146 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BarraLateral from '../components/BarraLateral';
 import MenuInicial from '../components/MenuInicial';
-import { AREAS_SEM_TODOS, buscarMaterialPorId } from '../services/materialsService';
-
-const COMODOS_POR_ANDAR = {
-    "Térreo":         ["Sala de estar", "Cozinha", "Lavabo", "Escritório", "Sala de Jantar", "Banheiro"],
-    "Primeiro Andar": ["Quarto 1", "Quarto 2", "Suíte", "Banheiro", "Escritório", "Lavanderia"],
-    "Segundo Andar":  ["Quarto 1", "Quarto 2", "Suíte", "Banheiro", "Varanda"],
-    "Subsolo":        ["Garagem", "Depósito", "Sala técnica"],
-    "Último Andar":   ["Cobertura", "Área gourmet", "Piscina"],
-};
-
-const ANDARES = Object.keys(COMODOS_POR_ANDAR);
+import { buscarMaterialPorId, atualizarMaterial, AREAS_SEM_TODOS, listarMateriaisPorProjeto } from '../services/materialsService';
+import { ValidateRequired } from '../utils/validations';
+import api from '../services/api';
 
 function EditarMaterial({ onLogout }) {
-    const { id, materialId } = useParams();
+    const { id: projectId, materialId } = useParams();
+    console.log('Params:', { projectId, materialId });
     const navigate = useNavigate();
 
-    const [carregando,  setCarregando]  = useState(true);
-    const [erro,        setErro]        = useState(null);
-
     const [form, setForm] = useState({
-        nome:       '',
-        referencia: '',
-        lote:       '',
-        marca:      '',
-        tamanho:    '',
-        tipo:       '',
-        cor:        '',
-        descricao:  '',
+        nomeMaterial: " ",
+        referencia: " ",
+        lote: " ",
+        marca: " ",
+        tamanho: " ",
+        tipoMaterial: " ",
+        cor: " ",
+        descricaoMaterial: "",
     });
 
-    const [areaSelecionada,    setAreaSelecionada]    = useState(null);
-    const [andarSelecionado,   setAndarSelecionado]   = useState('Térreo');
+    const [andares, setAndares] = useState([]);
+    const [andarSelecionado, setAndarSelecionado] = useState(null);
     const [comodosSelecionados, setComodosSelecionados] = useState([]);
+    const [areaSelecionada, setAreaSelecionada] = useState(null);
 
-    // Busca os dados reais do material na API ao montar
+    const [carregando, setCarregando] = useState(true);
+    const [enviando, setEnviando] = useState(false);
+    const [erros, setErros] = useState({});
+
+    // Busca andares E material
     useEffect(() => {
-        let ativo = true;
-
-        const fetchMaterial = async () => {
+        const fetchDados = async () => {
             try {
                 setCarregando(true);
-                setErro(null);
+                const [respAndares, listaMateriais] = await Promise.all([
+                    api.get(`/projects/${projectId}/rooms`).then((r) => r.data?.data || []),
+                    listarMateriaisPorProjeto(projectId),
+                ]);
 
-                const material = await buscarMaterialPorId(id, materialId);
+                setAndares(respAndares);
+                if (respAndares.length > 0) {
+                    setAndarSelecionado(respAndares[0].id);
+                }
 
-                if (!ativo) return;
+                // Encontra o material no array por ID
+                const material = listaMateriais.find((m) => m.idMaterial === materialId);
+                if (!material) throw new Error('Material não encontrado');
 
                 setForm({
-                    nome:       material.nomeMaterial !== '—' ? material.nomeMaterial : '',
-                    referencia: material.referencia  !== '—' ? material.referencia  : '',
-                    lote:       material.lote,
-                    marca:      material.marca       !== '—' ? material.marca       : '',
-                    tamanho:    material.tamanho,
-                    tipo:       material.tipo,
-                    cor:        material.cor,
-                    descricao:  material.descricao,
+                    nomeMaterial: material.nomeMaterial || "",
+                    referencia: material.referencia !== '—' ? material.referencia : "",
+                    lote: material.lote || "",
+                    marca: material.marca !== '—' ? material.marca : "",
+                    tamanho: material.tamanho || "",
+                    tipoMaterial: material.tipoMaterial || "",
+                    cor: material.cor || "",
+                    descricaoMaterial: material.descricao || "",
                 });
 
-                setAreaSelecionada(material.area !== '—' ? material.area : null);
-
-                // Pré-seleciona cômodos a partir do array normalizado
-                const nomesComodos = (material.comodosArray ?? []).map(
-                    (c) => c.nomeComodo ?? c.nome ?? ''
-                ).filter(Boolean);
-                setComodosSelecionados(nomesComodos);
-
+                setAreaSelecionada(material.area);
+                setComodosSelecionados(material.comodosArray || []);
             } catch (err) {
-                if (!ativo) return;
-                console.error('[EditarMaterial] Erro ao carregar material:', err);
-                setErro('Não foi possível carregar os dados do material.');
+                console.error('Erro ao carregar dados:', err);
+                setErros({ geral: 'Erro ao carregar dados do material' });
             } finally {
-                if (ativo) setCarregando(false);
+                setCarregando(false);
             }
         };
 
-        fetchMaterial();
-        return () => { ativo = false; };
-    }, [id, materialId]);
+        fetchDados();
+    }, [projectId, materialId]);
 
     const handleField = (e) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const toggleComodo = (comodo) => {
-        setComodosSelecionados((prev) =>
-            prev.includes(comodo) ? prev.filter((c) => c !== comodo) : [...prev, comodo]
-        );
+    const toggleComodo = (idComodo, idAndar) => {
+        setComodosSelecionados((prev) => {
+            const existe = prev.some((c) => c.idComodo === idComodo && c.idAndar === idAndar);
+            if (existe) {
+                return prev.filter((c) => !(c.idComodo === idComodo && c.idAndar === idAndar));
+            } else {
+                return [...prev, { idComodo, idAndar }];
+            }
+        });
     };
 
-    const handleAndar = (e) => {
-        setAndarSelecionado(e.target.value);
-        setComodosSelecionados([]);
+    const handleAndar = (andarId) => {
+        setAndarSelecionado(andarId);
     };
 
-    const handleSalvar = () => {
-        console.log({ ...form, area: areaSelecionada, comodos: comodosSelecionados, andar: andarSelecionado });
-        navigate(`/materiais/${id}`);
+    const validar = () => {
+        const novoErros = {};
+        const erroNome = ValidateRequired(form.nomeMaterial, 'Nome do Material');
+        if (erroNome) novoErros.nomeMaterial = erroNome;
+        if (!areaSelecionada) novoErros.area = 'Selecione uma área';
+        if (comodosSelecionados.length === 0) novoErros.comodos = 'Selecione pelo menos um cômodo';
+        setErros(novoErros);
+        return Object.keys(novoErros).length === 0;
     };
 
-    const comodos = COMODOS_POR_ANDAR[andarSelecionado] ?? [];
+    const handleSalvar = async () => {
+        if (!validar()) return;
 
-    // --- estados de carregamento e erro ---
+        const areaMap = {
+            'Revestimentos': 'REVESTIMENTOS',
+            'Pinturas': 'PINTURAS',
+            'Louças e metais': 'LOUCAS_E_METAIS',
+            'Luminárias': 'LUMINARIAS',
+        };
+
+        const payload = {
+            nomeMaterial: form.nomeMaterial,
+            area: areaMap[areaSelecionada],
+            referencia: form.referencia || "",
+            lote: form.lote || "",
+            marca: form.marca || "",
+            tamanho: form.tamanho || "",
+            tipoMaterial: form.tipoMaterial || "",
+            cor: form.cor || "",
+            descricaoMaterial: form.descricaoMaterial || "",
+            comodos: comodosSelecionados,
+        };
+
+        try {
+            setEnviando(true);
+            setErros({});
+            await atualizarMaterial(projectId, materialId, payload);
+            navigate(`/materiais/${projectId}`);
+        } catch (err) {
+            console.error('Erro ao atualizar material:', err);
+            setErros({ geral: err.message || 'Erro ao atualizar material' });
+        } finally {
+            setEnviando(false);
+        }
+    };
+
+    const andarAtual = andares.find((a) => a.id === andarSelecionado);
+    const comodos = andarAtual?.comodos ?? [];
+
     if (carregando) {
         return (
             <div className="h-svh flex flex-col overflow-hidden">
@@ -111,21 +149,7 @@ function EditarMaterial({ onLogout }) {
                 <div className="flex flex-1 overflow-hidden">
                     <BarraLateral onLogout={onLogout} />
                     <main className="w-full flex items-center justify-center">
-                        <p className="text-gray-400">Carregando material...</p>
-                    </main>
-                </div>
-            </div>
-        );
-    }
-
-    if (erro) {
-        return (
-            <div className="h-svh flex flex-col overflow-hidden">
-                <MenuInicial />
-                <div className="flex flex-1 overflow-hidden">
-                    <BarraLateral onLogout={onLogout} />
-                    <main className="w-full flex items-center justify-center">
-                        <p className="text-red-500 font-medium">{erro}</p>
+                        <p className="text-gray-600 font-semibold">Carregando material...</p>
                     </main>
                 </div>
             </div>
@@ -139,7 +163,12 @@ function EditarMaterial({ onLogout }) {
                 <BarraLateral onLogout={onLogout} />
                 <main className="w-full overflow-y-auto px-10 py-8">
 
-                    {/* Seção: Informações do Material */}
+                    {erros.geral && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                            {erros.geral}
+                        </div>
+                    )}
+
                     <section className="mb-10">
                         <p className="text-sm text-(--laranja-principal) font-semibold mb-1">Editar Material</p>
                         <h3 className="page-title mb-6">Informações do Material</h3>
@@ -150,88 +179,57 @@ function EditarMaterial({ onLogout }) {
                                     Nome do Material<span className="text-red-500">*</span>
                                 </label>
                                 <input
-                                    name="nome"
-                                    value={form.nome}
+                                    name="nomeMaterial"
+                                    value={form.nomeMaterial}
                                     onChange={handleField}
                                     placeholder="Ex: Porcelanato Carrara 60×60"
-                                    className="border border-gray-300 rounded px-3 h-10 text-sm focus:outline-none focus:border-gray-400"
+                                    className={`border rounded px-3 h-10 text-sm focus:outline-none ${
+                                        erros.nomeMaterial ? 'border-red-500' : 'border-gray-300 focus:border-gray-400'
+                                    }`}
                                 />
+                                {erros.nomeMaterial && <span className="text-xs text-red-500">{erros.nomeMaterial}</span>}
                             </div>
                             <div className="flex flex-col gap-1 flex-1">
                                 <label className="text-sm font-medium text-gray-700">Referência</label>
-                                <input
-                                    name="referencia"
-                                    value={form.referencia}
-                                    onChange={handleField}
-                                    placeholder="Ex: CAR-80-POL"
-                                    className="border border-gray-300 rounded px-3 h-10 text-sm focus:outline-none focus:border-gray-400"
-                                />
+                                <input name="referencia" value={form.referencia} onChange={handleField} placeholder="Ex: CAR-80-POL" className="border border-gray-300 rounded px-3 h-10 text-sm focus:outline-none focus:border-gray-400" />
                             </div>
                             <div className="flex flex-col gap-1 flex-1">
                                 <label className="text-sm font-medium text-gray-700">Lote</label>
-                                <input
-                                    name="lote"
-                                    value={form.lote}
-                                    onChange={handleField}
-                                    placeholder="Ex: L2024-001"
-                                    className="border border-gray-300 rounded px-3 h-10 text-sm focus:outline-none focus:border-gray-400"
-                                />
+                                <input name="lote" value={form.lote} onChange={handleField} placeholder="Ex: L2024-001" className="border border-gray-300 rounded px-3 h-10 text-sm focus:outline-none focus:border-gray-400" />
                             </div>
                         </div>
 
                         <div className="flex gap-4 mb-4">
                             {[
-                                { name: "marca",   label: "Marca",   placeholder: "Ex: Portobello"     },
-                                { name: "tamanho", label: "Tamanho", placeholder: "Ex: 60×60cm"        },
-                                { name: "tipo",    label: "Tipo",    placeholder: "Ex: Polido"          },
-                                { name: "cor",     label: "Cor",     placeholder: "Ex: Branco Mármore"  },
+                                { name: "marca",         label: "Marca",   placeholder: "Ex: Portobello" },
+                                { name: "tamanho",       label: "Tamanho", placeholder: "Ex: 60×60cm" },
+                                { name: "tipoMaterial",  label: "Tipo",    placeholder: "Ex: Polido" },
+                                { name: "cor",           label: "Cor",     placeholder: "Ex: Branco Mármore" },
                             ].map(({ name, label, placeholder }) => (
                                 <div key={name} className="flex flex-col gap-1 flex-1">
                                     <label className="text-sm font-medium text-gray-700">{label}</label>
-                                    <input
-                                        name={name}
-                                        value={form[name]}
-                                        onChange={handleField}
-                                        placeholder={placeholder}
-                                        className="border border-gray-300 rounded px-3 h-10 text-sm focus:outline-none focus:border-gray-400"
-                                    />
+                                    <input name={name} value={form[name]} onChange={handleField} placeholder={placeholder} className="border border-gray-300 rounded px-3 h-10 text-sm focus:outline-none focus:border-gray-400" />
                                 </div>
                             ))}
                         </div>
 
-                        {/* Descrição */}
                         <div className="flex flex-col gap-1">
                             <label className="text-sm font-medium text-gray-700">Descrição</label>
-                            <textarea
-                                name="descricao"
-                                value={form.descricao}
-                                onChange={handleField}
-                                placeholder="Descreva o material"
-                                rows={4}
-                                className="border border-gray-300 rounded px-3 py-2 text-sm resize-none focus:outline-none focus:border-gray-400"
-                            />
+                            <textarea name="descricaoMaterial" value={form.descricaoMaterial} onChange={handleField} placeholder="Descreva o material" rows={4} className="border border-gray-300 rounded px-3 py-2 text-sm resize-none focus:outline-none focus:border-gray-400" />
                         </div>
                     </section>
 
                     <hr className="border-gray-200 mb-10" />
 
-                    {/* Seção: Área */}
                     <section className="mb-10">
                         <h3 className="page-title mb-1">Área</h3>
                         <p className="text-sm text-gray-400 mb-4">Selecione a área onde o material foi utilizado</p>
+                        {erros.area && <p className="text-xs text-red-500 mb-2">{erros.area}</p>}
                         <div className="flex gap-3 flex-wrap">
                             {AREAS_SEM_TODOS.map((area) => {
                                 const ativo = areaSelecionada === area;
                                 return (
-                                    <button
-                                        key={area}
-                                        onClick={() => setAreaSelecionada(area)}
-                                        className={`px-5 h-9 rounded-sm text-sm font-semibold border-2 transition-all ${
-                                            ativo
-                                                ? "bg-(--laranja-principal) border-(--laranja-principal) text-white"
-                                                : "border-gray-300 text-gray-600 hover:border-gray-400"
-                                        }`}
-                                    >
+                                    <button key={area} onClick={() => setAreaSelecionada(area)} className={`px-5 h-9 rounded-sm text-sm font-semibold border-2 transition-all ${ativo ? "bg-(--laranja-principal) border-(--laranja-principal) text-white" : "border-gray-300 text-gray-600 hover:border-gray-400"}`}>
                                         {area}
                                     </button>
                                 );
@@ -241,57 +239,40 @@ function EditarMaterial({ onLogout }) {
 
                     <hr className="border-gray-200 mb-10" />
 
-                    {/* Seção: Cômodo por andar */}
                     <section className="mb-12">
                         <h3 className="page-title mb-1">Cômodo por andar</h3>
+                        {erros.comodos && <p className="text-xs text-red-500 mb-2">{erros.comodos}</p>}
 
                         <div className="flex flex-col gap-1 mb-5 w-48">
                             <label className="text-sm font-medium text-gray-700">Andar</label>
-                            <select
-                                value={andarSelecionado}
-                                onChange={handleAndar}
-                                className="border border-gray-300 rounded px-3 h-10 text-sm bg-white focus:outline-none focus:border-gray-400"
-                            >
-                                {ANDARES.map((a) => (
-                                    <option key={a} value={a}>{a}</option>
-                                ))}
+                            <select value={andarSelecionado || ''} onChange={(e) => handleAndar(parseInt(e.target.value))} className="border border-gray-300 rounded px-3 h-10 text-sm bg-white focus:outline-none focus:border-gray-400">
+                                {andares.map((a) => (<option key={a.id} value={a.id}>{a.nome}</option>))}
                             </select>
                         </div>
 
-                        <div className="grid grid-cols-4 gap-x-6 gap-y-3">
-                            {comodos.map((comodo) => {
-                                const marcado = comodosSelecionados.includes(comodo);
-                                return (
-                                    <label
-                                        key={comodo}
-                                        className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 select-none"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={marcado}
-                                            onChange={() => toggleComodo(comodo)}
-                                            className="w-4 h-4 accent-(--laranja-principal) cursor-pointer"
-                                        />
-                                        {comodo}
-                                    </label>
-                                );
-                            })}
-                        </div>
+                        {comodos.length > 0 ? (
+                            <div className="grid grid-cols-4 gap-x-6 gap-y-3">
+                                {comodos.map((comodo) => {
+                                    const marcado = comodosSelecionados.some((c) => c.idComodo === comodo.id && c.idAndar === andarSelecionado);
+                                    return (
+                                        <label key={comodo.id} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 select-none">
+                                            <input type="checkbox" checked={marcado} onChange={() => toggleComodo(comodo.id, andarSelecionado)} className="w-4 h-4 accent-(--laranja-principal) cursor-pointer" />
+                                            {comodo.nome}
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500">Nenhum cômodo neste andar</p>
+                        )}
                     </section>
 
                     <div className="flex justify-end gap-3 pb-8">
-                        <button
-                            onClick={() => navigate(`/materiais/${id}`)}
-                            className="px-6 h-10 rounded-sm border-2 border-gray-300 text-gray-600 text-sm font-semibold hover:border-gray-400 transition-all"
-                        >
+                        <button onClick={() => navigate(`/materiais/${projectId}`)} className="px-6 h-10 rounded-sm border-2 border-gray-300 text-gray-600 text-sm font-semibold hover:border-gray-400 transition-all">
                             Cancelar
                         </button>
-                        <button
-                            onClick={handleSalvar}
-                            disabled={!form.nome || !areaSelecionada}
-                            className="px-6 h-10 rounded-sm text-sm font-semibold text-white bg-(--laranja-principal) border-2 border-(--laranja-principal) hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                            Salvar
+                        <button onClick={handleSalvar} disabled={enviando} className="px-6 h-10 rounded-sm text-sm font-semibold text-white bg-(--laranja-principal) border-2 border-(--laranja-principal) hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                            {enviando ? 'Salvando...' : 'Salvar'}
                         </button>
                     </div>
 

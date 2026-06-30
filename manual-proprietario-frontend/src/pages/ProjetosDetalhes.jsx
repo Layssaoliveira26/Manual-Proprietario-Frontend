@@ -1,10 +1,14 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { FaBuilding, FaSitemap, FaWater, FaBolt } from "react-icons/fa";
 import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
+import { ModalSucesso } from "../components/ModalSucesso";
+import { ModalErro } from "../components/ModalErro";
+import {ValidateCPF, ValidateEmail} from "../utils/validations";
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { BiEdit } from "react-icons/bi";
+import { maskCPF } from "../utils/masks";
 
 const iconesProjeto = {
   "Projeto Extensão / Elétrico": FaBolt,
@@ -24,6 +28,8 @@ const TIPOS_PADRAO_DOCUMENTOS = [
 function ProjetoDetalhe({ onLogout }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [projeto, setProjeto] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [enviandoDoc, setEnviandoDoc] = useState(false); 
@@ -32,7 +38,90 @@ function ProjetoDetalhe({ onLogout }) {
   const [docSelecionado, setDocSelecionado] = useState(null);
   const [loadingComodos, setLoadingComodos] = useState(true);
   const [comodos, setComodos] = useState([]);
+  const [modalEntrega, setModalEntrega] = useState(false);
+  const [dadosEntrega, setDadosEntrega] = useState({ cpf: "", email: "" });
+  const [enviandoEntrega, setEnviandoEntrega] = useState(false);
+  const isProjetoEntregue = projeto?.status?.toUpperCase() === 'ENTREGUE';
+  const [errorField, setErrorField] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
+  const [modalSucesso, setModalSucesso] = useState(false);
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
+  const [subtextoSucesso, setSubtextoSucesso] = useState("");
+
+  const [modalErro, setModalErro] = useState(false);
+  const [mensagemErroModal, setMensagemErroModal] = useState("");
+  const [subtextoErroModal, setSubtextoErroModal] = useState("");
+
+  // Verifica se o usuário veio da página de alteração com sucesso
+  useEffect(() => {
+    if (location.state?.sucessoAlteracao) {
+      setMensagemSucesso("Alteração realizada com sucesso!");
+      setSubtextoSucesso("As informações foram salvas no sistema.");
+      setModalSucesso(true);
+      
+      // Limpa o state do histórico para o modal não reabrir se o usuário der F5
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+  
+  const handleEntregarManual = async () => {
+  setErrorMessage("");
+  setErrorField("");
+
+  const erroCpf = ValidateCPF(dadosEntrega.cpf);
+  if (erroCpf) {
+    setErrorField("cpfEntrega");
+    setErrorMessage(erroCpf);
+    return;
+  }
+
+  const erroEmail = ValidateEmail(dadosEntrega.email);
+  if (erroEmail) {
+    setErrorField("emailEntrega");
+    setErrorMessage(erroEmail);
+    return;
+  }
+
+  try {
+    setEnviandoEntrega(true);
+
+    await api.post(`/projects/${id}/deliver`, {
+      cpf: dadosEntrega.cpf.replace(/\D/g, ""),
+      email: dadosEntrega.email
+    });
+    
+    setMensagemSucesso("Projeto entregue com sucesso!");
+    setSubtextoSucesso("O projeto foi entregue ao proprietário no sistema.");
+    setModalSucesso(true);
+    setModalEntrega(false);
+    setDadosEntrega({ cpf: "", email: "" });
+    carregarDadosDoProjeto(false);
+
+  } catch (error) {e
+    if (error.response?.status === 409) {
+      const message = error.response.data?.message;
+      
+      if (message?.includes("CONSTRUTOR") || message?.includes("Construtor")) {
+        setErrorMessage(message);
+      } 
+      
+      else if (message?.includes("já foi entregue")) {
+        setErrorMessage(message);
+      }
+    } 
+    else if (error.response?.status === 404) {
+      setErrorMessage("Projeto não encontrado.");
+    } 
+    else {
+      setErrorMessage(error.response?.data?.message || "Erro ao realizar entrega.");
+    }
+    
+    console.error("Erro na entrega:", error);
+  } finally {
+    setEnviandoEntrega(false);
+  }
+};
   // CORREÇÃO DEFINITIVA: Aponta cirurgicamente para a rota estática raiz do Express (Porta 3000)
   const obterUrlAbsoluta = (path) => {
     if (!path) return "";
@@ -109,13 +198,14 @@ function ProjetoDetalhe({ onLogout }) {
         const d = new Date(dataRaw);
         return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR", { timeZone: "UTC" });
       };
-
+      
       setProjeto({
         titulo: apiData.nomeProjeto || apiData.titulo || "",
         descricao: apiData.descricao || "",
         endereco,
         dataInicio: formatarDataSegura(dataInicioRaw),
         dataConclusao: formatarDataSegura(dataConclusaoRaw),
+        status: apiData.status,
         documentos: documentosConsolidados,
         comodos: (apiData.andares || []).flatMap((andar) => {
           const nomeAndar = andar.nome || andar.nomeAndar || "";
@@ -152,11 +242,18 @@ function ProjetoDetalhe({ onLogout }) {
 
       setNovoComodo({ nome: "", andar: "Térreo" });
       setModalAberto(false);
+
+      setMensagemSucesso("Cômodo criado com sucesso!");
+      setSubtextoSucesso(`O cômodo ${novoComodo.nome.trim()} foi adicionado ao projeto.`);
+      setModalSucesso(true);
+
       buscaComodos();
       carregarDadosDoProjeto(false);
     } catch (error) {
       console.error("Erro ao criar cômodo:", error);
-      alert("Erro ao criar cômodo. Tente novamente.");
+      setMensagemErroModal("Erro ao criar cômodo.");
+      setSubtextoErroModal("Ocorreu um erro inesperado. Tente novamente.");
+      setModalErro(true);
     }
   };
 
@@ -203,12 +300,16 @@ function ProjetoDetalhe({ onLogout }) {
       await api.post(`/projects/${id}/documents`, formDataUpload, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      alert("Documento atualizado com sucesso!");
+      setMensagemSucesso("Documento atualizado!");
+      setSubtextoSucesso(`O arquivo para ${docSelecionado.tipo} foi salvo no sistema.`);
+      setModalSucesso(true);
       await carregarDadosDoProjeto(false);
     } catch (error) {
       console.error("Erro ao enviar documento:", error);
       const mensagemApi = error.response?.data?.message || "Erro ao fazer upload do arquivo.";
-      alert(`Falha ao atualizar o documento.\n\nDetalhe: ${mensagemApi}`);
+      setMensagemErroModal("Falha ao atualizar o documento.");
+      setSubtextoErroModal(`Motivo: ${mensagemApi}`);
+      setModalErro(true);
     } finally {
       e.target.value = ""; 
       setDocSelecionado(null);
@@ -261,13 +362,28 @@ function ProjetoDetalhe({ onLogout }) {
                     <h3 className="text-(--cor-azul) text-4xl font-semibold mt-2 pl-2">{projeto.titulo}</h3>
                   </div>
                   <div className="flex items-center gap-3">
+                    {/* Botão de Editar */}
                     <button
                       onClick={() => navigate(`/projetos/${id}/alteracoes`, { state: { projeto } })}
-                      className="text-sm border border-[#c0392b] text-[#c0392b] rounded px-4 py-2 hover:bg-[#c0392b] hover:text-white transition-colors"
+                      disabled={isProjetoEntregue}
+                      className={`text-sm border rounded px-4 py-2 transition-colors ${
+                        isProjetoEntregue 
+                          ? "border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100" 
+                          : "border-[#c0392b] text-[#c0392b] hover:bg-[#c0392b] hover:text-white"
+                      }`}
                     >
-                      Editar Informações
+                      {isProjetoEntregue ? "Bloqueado (Entregue)" : "Editar Informações"}
                     </button>
-                    <button className="text-sm border border-[#c0392b] text-[#c0392b] rounded px-4 py-2 hover:bg-[#c0392b] hover:text-white transition-colors">Entregar Manual</button>
+
+                    {/* Botão de Entrega (Oculto se já entregue) */}
+                    {!isProjetoEntregue && (
+                      <button 
+                        onClick={() => setModalEntrega(true)}
+                        className="text-sm border border-[#c0392b] text-[#c0392b] rounded px-4 py-2 hover:bg-[#c0392b] hover:text-white transition-colors"
+                      >
+                        Entregar Manual
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="mt-8 mb-8 ml-6 text-[#455861]">
@@ -407,9 +523,9 @@ function ProjetoDetalhe({ onLogout }) {
                   </div>
                 )}
                 <div className="flex flex-col ">
-                  {projeto.comodos.map((comodo) => (
+                  {projeto.comodos.map((comodo, index) => (
                     <div
-                      key={comodo.id}
+                      key={`${comodo.idAndar}-${comodo.idComodo}-${index}`}
                       className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
                     >
                       <span className="font-semibold text-sm text-gray-800 w-36">
@@ -433,6 +549,65 @@ function ProjetoDetalhe({ onLogout }) {
               </div>
             </>
           )}
+          {/** Modal de Entrega do Manual **/}
+          {modalEntrega && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-[1px]" onClick={() => setModalEntrega(false)} >
+            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                <h2 className="text-2xl font-bold text-(--cor-azul) mb-6">Entregar Manual</h2>
+                {errorMessage && (
+                  <p className="text-red-500 text-sm mb-4 font-bold bg-red-50 p-2 rounded border border-red-200 w-full text-center">
+                      {errorMessage}
+                  </p>
+                )}
+                <div className="flex flex-col gap-4">
+                  <input 
+                    type="text"
+                    placeholder="CPF do Proprietário*"
+                    value={dadosEntrega.cpf}
+                    onChange={(e) => setDadosEntrega({...dadosEntrega, cpf: maskCPF(e.target.value)})}
+                    className={`border rounded-md p-3 w-full ${errorField === "cpfEntrega" ? "!border-red-500 bg-red-50" : "border-gray-300"}`}
+                  />
+                  <input 
+                    type="email"
+                    placeholder="E-mail do Proprietário*"
+                    value={dadosEntrega.email}
+                    onChange={(e) => setDadosEntrega({...dadosEntrega, email: e.target.value})}
+                    className={`border rounded-md p-3 w-full ${errorField === "emailEntrega" ? "!border-red-500 bg-red-50" : "border-gray-300"}`}
+                  />
+                </div>
+
+                <div className="flex gap-3 mt-8">
+                  <button 
+                    onClick={() => setModalEntrega(false)} 
+                    className="flex-1 text-sm border border-gray-300 text-gray-700 rounded px-4 py-2 hover:bg-gray-50 transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    onClick={handleEntregarManual}
+                    disabled={enviandoEntrega}
+                    className="flex-1 text-sm border border-(--laranja-principal) bg-(--laranja-principal) text-white rounded px-4 py-2 hover:opacity-90 transition-all shadow-md"
+                  >
+                  {enviandoEntrega ? "Enviando..." : "Confirmar Entrega"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {/** Modal de Sucesso **/}
+          <ModalSucesso 
+            isAberto={modalSucesso}
+            mensagem={mensagemSucesso}
+            subtexto={subtextoSucesso}
+            onFechar={() => setModalSucesso(false)}
+          />
+          {/** Modal de Erro **/}
+          <ModalErro 
+            isAberto={modalErro}
+            mensagem={mensagemErroModal}
+            subtexto={subtextoErroModal}
+            onFechar={() => setModalErro(false)}
+          />
         </main>
       </div>
     </div>

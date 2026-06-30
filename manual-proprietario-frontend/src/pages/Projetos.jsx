@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { MdOutlineEngineering } from 'react-icons/md';
 import { IoSettingsOutline } from 'react-icons/io5';
 import BarraLateral from '../components/BarraLateral';
 import MenuInicial from '../components/MenuInicial';
+import { ModalSucesso } from '../components/ModalSucesso';
+import { Paginacao } from '../components/Paginacao';
 import { listarProjetos } from '../services/projectsService';
 
 // ---------------------------------------------------------------------------
@@ -27,10 +29,26 @@ function Projetos({ onLogout }) {
     const [erro,        setErro]        = useState(null);
     const [searchTerm,  setSearchTerm]  = useState('');
 
+    const [paginaAtual, setPaginaAtual] = useState(1);
+    const itensPorPagina = 10;
+
+    const indiceInicio = (paginaAtual - 1) * itensPorPagina;
+    const indiceFim = indiceInicio + itensPorPagina;
+    const projetosPaginados = projetos.slice(indiceInicio, indiceFim);
+    const totalPaginas = Math.ceil(projetos.length / itensPorPagina);
+
     const navigate = useNavigate();
+    const location = useLocation();
+    const [modalSucesso, setModalSucesso] = useState(false);
 
     useEffect(() => {
         let ativo = true;
+
+        if (location.state?.sucessoCriacao) {
+            setModalSucesso(true);
+            // Limpa o state para não mostrar novamente se recarregar
+            window.history.replaceState({}, document.title);
+        }
 
         const fetchProjetos = async () => {
             try {
@@ -41,6 +59,7 @@ function Projetos({ onLogout }) {
 
                 if (!ativo) return;
                 setProjetos(dados);
+                setPaginaAtual(1);
             } catch (err) {
                 if (!ativo) return;
                 console.error('[Projetos] Erro ao carregar:', err);
@@ -78,7 +97,7 @@ function Projetos({ onLogout }) {
             );
         }
 
-        if (projetos.length === 0) {
+        if (projetosPaginados.length === 0) {
             return (
                 <tr>
                     <td colSpan={4} className="py-10 px-6">
@@ -91,7 +110,7 @@ function Projetos({ onLogout }) {
             );
         }
 
-        return projetos.map((projeto) => (
+        return projetosPaginados.map((projeto) => (
             <tr
                 key={projeto.id}
                 className="cursor-pointer hover:bg-gray-50 transition-colors"
@@ -157,7 +176,17 @@ function Projetos({ onLogout }) {
                             </tbody>
                         </table>
                     </div>
-
+                    <ModalSucesso 
+                        isAberto={modalSucesso}
+                        mensagem="Projeto criado com sucesso!"
+                        subtexto="Seu novo projeto foi adicionado ao sistema."
+                        onFechar={() => setModalSucesso(false)}
+                    />
+                    <Paginacao 
+                        paginaAtual={paginaAtual}
+                        totalPaginas={totalPaginas}
+                        onMudarPagina={setPaginaAtual}
+                    />
                 </main>
             </div>
         </div>
