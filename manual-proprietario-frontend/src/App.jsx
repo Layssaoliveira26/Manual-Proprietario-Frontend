@@ -1,167 +1,167 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import CadastroProprietario from "./pages/CadastroProprietario"
+import CadastroConstrutor from './pages/CadastroConstrutor';
+import RedefinirSenha from './pages/RedefinicaoSenha';
+import EsqueciSenha from './pages/EsqueciSenha';
+import './App.css'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
-
-import ProtectedRoute from './components/ProtectedRoute';
-
-// Páginas públicas
-import Login               from './pages/Login';
-import CadastroProprietario from './pages/CadastroProprietario';
-import CadastroConstrutor  from './pages/CadastroConstrutor';
-import EsqueciSenha        from './pages/EsqueciSenha';
-import RedefinirSenha      from './pages/RedefinicaoSenha';
-
-// Páginas compartilhadas (Proprietário + Construtor)
-import Home              from './pages/Home';
-import Manuais           from './pages/Manuais';
-import ManualDetalhe     from './pages/ManuaisDetalhes';
-import ManualComodo      from './pages/ManualComodo';
-import Materiais         from './pages/Materiais';
+import Login from './pages/Login';
+import Home from './pages/Home';
+import Manuais from './pages/Manuais';
+import Projetos from './pages/Projetos';
+import Materiais from './pages/Materiais';
 import MateriaisDetalhes from './pages/MateriaisDetalhes';
-import MinhaConta        from './pages/MinhaConta';
+import AdicionarMaterial from './pages/AdicionarMaterial';
+import EditarMaterial from './pages/EditarMaterial';
+import MinhaConta from './pages/MinhaConta';
+import CadastroProjeto from './pages/CadastroProjeto';
+import CadastroProjeto2 from './pages/CadastroProjeto2';
+import CadastroProjeto3 from './pages/CadastroProjeto3';
+import { jwtDecode } from 'jwt-decode';
+import ManualDetalhe from './pages/ManuaisDetalhes';
+import ManualComodo from './pages/ManualComodo';
+import ProjetosDetalhes from './pages/ProjetosDetalhes';
+import ProjetosComodo from './pages/ProjetosComodo';
+import AlteracoesProjeto from './pages/AlteracoesProjeto';
+import AlteracoesComodos from './pages/AlteracoesComodos';
+import VisualizarAlteracoesComodo from './pages/VisualizarAlteracoesComodo';
 
-// Páginas exclusivas do Construtor
-import Projetos           from './pages/Projetos';
-import ProjetosDetalhes   from './pages/ProjetosDetalhes';
-import ProjetosComodo     from './pages/ProjetosComodo';
-import AlteracoesProjeto  from './pages/AlteracoesProjeto';
-import AlteracoesComodos  from './pages/AlteracoesComodos';
-import AdicionarMaterial  from './pages/AdicionarMaterial';
-import EditarMaterial     from './pages/EditarMaterial';
-import CadastroProjeto    from './pages/CadastroProjeto';
-import CadastroProjeto2   from './pages/CadastroProjeto2';
-import CadastroProjeto3   from './pages/CadastroProjeto3';
+function App() {
+   const [user, setUser] = useState(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
 
-import './App.css';
-
-// ---------------------------------------------------------------------------
-// Roles disponíveis — centralizados para evitar "magic strings" espalhadas
-// ---------------------------------------------------------------------------
-const ROLES = {
-  PROPRIETARIO: 'PROPRIETARIO',
-  CONSTRUTOR:   'CONSTRUTOR',
-};
-
-// ---------------------------------------------------------------------------
-// Utilitário: lê o JWT e devolve o usuário (ou null se inválido/expirado)
-// ---------------------------------------------------------------------------
-function getUserFromToken() {
-  const token = localStorage.getItem('token');
-  if (!token) return null;
-  try {
-    const decoded = jwtDecode(token);
-    if (decoded.exp * 1000 < Date.now()) {
-      localStorage.removeItem('token');
+    try {
+      const decoded = jwtDecode(token);
+      if (decoded.exp * 1000 < Date.now()) {
+        localStorage.removeItem("token");
+        return null;
+      }
+      return { role: decoded.profile, email: decoded.email };
+    } catch {
+      localStorage.removeItem("token");
       return null;
     }
-    return { role: decoded.profile, email: decoded.email };
-  } catch {
-    localStorage.removeItem('token');
-    return null;
+  });
+  
+  const handleLogin = (userData) => {
+    setUser(userData);
   }
-}
-
-// ---------------------------------------------------------------------------
-// App
-// ---------------------------------------------------------------------------
-function App() {
-  const [user, setUser] = useState(() => getUserFromToken());
-
-  const handleLogin  = (userData) => setUser(userData);
+  
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setUser(null);
   };
-
-  // Escuta o CustomEvent disparado pelo interceptor do Axios quando a API
-  // retorna 401. Garante que o logout ocorra dentro do ciclo React,
-  // sem precisar de window.location.href (que causaria full reload).
-  useEffect(() => {
-    const onUnauthorized = () => handleLogout();
-    window.addEventListener('auth:unauthorized', onUnauthorized);
-    return () => window.removeEventListener('auth:unauthorized', onUnauthorized);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Rota raiz — redireciona conforme o perfil                        */}
-        {/* ---------------------------------------------------------------- */}
+        {/* Rota Raiz */}
         <Route
           path="/"
           element={
-            user
-              ? <Navigate to={`/${user.role}`} replace />
-              : <Navigate to="/login"           replace />
+            user ? <Navigate to={`/${user.role}`} /> : <Navigate to="/login"/> 
           }
         />
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Rotas públicas — acessíveis sem autenticação                     */}
-        {/* ---------------------------------------------------------------- */}
-        <Route path="/login"               element={<Login onLogin={handleLogin} />} />
-        <Route path="/cadastro-proprietario" element={<CadastroProprietario />} />
-        <Route path="/cadastro-construtor"   element={<CadastroConstrutor />} />
-        <Route path="/esqueci-senha"         element={<EsqueciSenha />} />
-        <Route path="/redefinir-senha"       element={<RedefinirSenha />} />
+        {/* Rotas Públicas */}
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route path="/cadastro-proprietario" element={<CadastroProprietario/>} />
+        <Route path="/cadastro-construtor" element={<CadastroConstrutor/>} />
+        <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+        <Route path="/redefinir-senha" element={<RedefinirSenha/>} />
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Rotas compartilhadas — qualquer usuário autenticado              */}
-        {/* ---------------------------------------------------------------- */}
-        <Route element={<ProtectedRoute />}>
+        {/* Rotas Protegidas */}
+        <Route 
+          path="/PROPRIETARIO" 
+          element={user ? <Home onLogout={handleLogout}/> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/CONSTRUTOR" 
+          element={user ? <Home onLogout={handleLogout}/> : <Navigate to="/login" />} 
+        />
 
-          {/* Dashboards de perfil */}
-          <Route path="/PROPRIETARIO" element={<Home onLogout={handleLogout} />} />
-          <Route path="/CONSTRUTOR"   element={<Home onLogout={handleLogout} />} />
+        <Route
+          path="/manuais"
+          element={user ? <Manuais onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/manuais/:id"
+          element={user ? <ManualDetalhe onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/manuais/:id/comodo/:idComodo"
+          element={user ? <ManualComodo onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/manuais/:id/comodo/:idComodo/visualizaralteracoescomodo"
+          element={user ? <VisualizarAlteracoesComodo onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/projetos"
+          element={user ? <Projetos onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/projetos/:id"
+          element={user ? <ProjetosDetalhes onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/projetos/:id/comodo/:idComodo"
+          element={user ? <ProjetosComodo onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/projetos/:id/comodo/:idComodo/alteracoes"
+          element={user ? <AlteracoesComodos onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/projetos/:id/comodo/:idComodo/alteracoes/:idAlteracao"
+          element={user ? <VisualizarAlteracoesComodo onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/projetos/:id/alteracoes"
+          element={user ? <AlteracoesProjeto onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
 
-          {/* Manuais */}
-          <Route path="/manuais"                        element={<Manuais         onLogout={handleLogout} />} />
-          <Route path="/manuais/:id"                    element={<ManualDetalhe   onLogout={handleLogout} />} />
-          <Route path="/manuais/:id/comodo/:idComodo"   element={<ManualComodo    onLogout={handleLogout} />} />
+        {/* Rotas de Materiais */}
+        <Route
+          path="/materiais"
+          element={user ? <Materiais onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/materiais/:id"
+          element={user ? <MateriaisDetalhes onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/materiais/:id/adicionar"
+          element={user ? <AdicionarMaterial onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/materiais/:id/editar/:materialId"
+          element={user ? <EditarMaterial onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/minha-conta"
+          element={user ? <MinhaConta onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
 
-          {/* Materiais (leitura — compartilhada) */}
-          <Route path="/materiais"    element={<Materiais         onLogout={handleLogout} />} />
-          <Route path="/materiais/:id" element={<MateriaisDetalhes onLogout={handleLogout} />} />
+        <Route
+          path="/cadastro-projeto"
+          element={user ? <CadastroProjeto onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/cadastro-projeto2"
+          element={user ? <CadastroProjeto2 onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/cadastro-projeto3" 
+          element={user ? <CadastroProjeto3 onLogout={handleLogout}/> : <Navigate to="/login" />}
+        />
 
-          {/* Conta */}
-          <Route path="/minha-conta" element={<MinhaConta onLogout={handleLogout} />} />
-
-        </Route>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Rotas exclusivas do Construtor                                   */}
-        {/* ---------------------------------------------------------------- */}
-        <Route element={<ProtectedRoute allowedRoles={[ROLES.CONSTRUTOR]} />}>
-
-          {/* Projetos */}
-          <Route path="/projetos"                                      element={<Projetos          onLogout={handleLogout} />} />
-          <Route path="/projetos/:id"                                  element={<ProjetosDetalhes  onLogout={handleLogout} />} />
-          <Route path="/projetos/:id/comodo/:idComodo"                 element={<ProjetosComodo    onLogout={handleLogout} />} />
-          <Route path="/projetos/:id/comodo/:idComodo/alteracoes"      element={<AlteracoesComodos onLogout={handleLogout} />} />
-          <Route path="/projetos/:id/alteracoes"                       element={<AlteracoesProjeto onLogout={handleLogout} />} />
-
-          {/* Materiais — operações de escrita */}
-          <Route path="/materiais/:id/adicionar"          element={<AdicionarMaterial onLogout={handleLogout} />} />
-          <Route path="/materiais/:id/editar/:materialId" element={<EditarMaterial    onLogout={handleLogout} />} />
-
-          {/* Cadastro de projeto (wizard) */}
-          <Route path="/cadastro-projeto"  element={<CadastroProjeto  onLogout={handleLogout} />} />
-          <Route path="/cadastro-projeto2" element={<CadastroProjeto2 onLogout={handleLogout} />} />
-          <Route path="/cadastro-projeto3" element={<CadastroProjeto3 onLogout={handleLogout} />} />
-
-        </Route>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Catch-all — qualquer rota desconhecida vai para a raiz           */}
-        {/* ---------------------------------------------------------------- */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-
+        {/* Rotas não encontradas */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
-  );
+  )
 }
 
 export default App;

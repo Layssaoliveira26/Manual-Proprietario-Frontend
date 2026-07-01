@@ -5,6 +5,7 @@ import MenuInicial from "../components/MenuInicial";
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import { BiEdit } from "react-icons/bi";
+import { IoEyeOutline } from "react-icons/io5";
 
 const iconesProjeto = {
   "Projeto Extensão / Elétrico": FaBolt,
@@ -418,9 +419,15 @@ function ProjetoDetalhe({ onLogout }) {
                       <span className="text-sm text-gray-500 flex-1 px-4">
                         {comodo.andar}
                       </span>
-                      <span className="text-sm text-gray-400 mr-6">
+                      {/* <span className="text-sm text-gray-400 mr-6">
                         Última alteração: {comodo.ultimaAlteracao}
-                      </span>
+                      </span> */}
+                      <button
+                        onClick={() => navigate(`/manuais/:id/comodo/:idComodo/visualizaralteracoescomodo`, { state: { projeto, comodo } })}
+                        className=" text-white text-xl rounded px-4 py-1.5 cursor-pointer transition-colors whitespace-nowrap"
+                      >
+                        <IoEyeOutline color="#c0392b"/>
+                      </button>
                       <button
                         onClick={() => navigate(`/projetos/${id}/comodo/${comodo.idComodo}/alteracoes`, { state: { projeto, comodo } })}
                         className=" text-white text-xl rounded px-4 py-1.5 cursor-pointer transition-colors whitespace-nowrap"
