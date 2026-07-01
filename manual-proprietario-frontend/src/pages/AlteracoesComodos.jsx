@@ -8,10 +8,10 @@ import api from "../services/api";
 import { ValidateRequired, ValidatePastOrTodayDate, ValidateAfterProjectStart } from "../utils/validations";
 
 const DISCIPLINAS = [
-  { value: "ARQUITETÔNICA", label: "Arquitetônica" },
-  { value: "ESTRTURAL", label: "Estrutural" },
-  { value: "HIDROSSANITÁRIA", label: "Hidrossanitária" },
-  { value: "ELÉTRICA", label: "Elétrica" }
+  { value: "ARQUITETONICA", label: "Arquitetônica" },
+  { value: "ESTRUTURAL", label: "Estrutural" },
+  { value: "HIDROSSANITARIA", label: "Hidrossanitária" },
+  { value: "ELETRICA", label: "Elétrica" }
 ];
 
 export default function AlteraçõesComodos({ onLogout }) {
@@ -50,7 +50,13 @@ export default function AlteraçõesComodos({ onLogout }) {
       try {
         setLoadingFuncionarios(true);
         const response = await api.get(`/projects/${projetoId}`);
-        setFuncionarios(response.data.data?.funcionarios ?? []);
+        const apiFuncs = response.data.data?.funcionarios ?? [];
+        const flatFuncs = apiFuncs.map(f => {
+           const id = f.funcionario?.id || f.idFuncionario || f.id;
+           const nome = f.funcionario?.nomeFunc || f.nomeFunc || f.nome || "Sem Nome";
+           return { id, nome };
+        }).filter(f => f.id);
+        setFuncionarios(flatFuncs);
       }
       catch (error){
         console.log("Erro ao buscar funcionários:", error);
@@ -147,7 +153,26 @@ export default function AlteraçõesComodos({ onLogout }) {
               file: formData.arquivo
           });
       }
-      console.log("Salvando alteração:", formData, todosArquivosParaSalvar);
+
+      const formPayload = new FormData();
+      formPayload.append("areaAlteracao", formData.disciplina);
+      formPayload.append("idAndar", String(comodo.idAndar));
+      formPayload.append("idComodo", String(comodo.idComodo));
+      formPayload.append("nomeAlteracao", formData.nomeAlteracao);
+      formPayload.append("descricao", formData.descricao);
+      formPayload.append("dataAlteracao", formData.dataAlteracao);
+      
+      // formData.funcionarioResponsavel agora guarda o ID
+      formPayload.append("funcionariosIds", JSON.stringify([formData.funcionarioResponsavel]));
+
+      todosArquivosParaSalvar.forEach((foto) => {
+         formPayload.append("fotos", foto.file);
+      });
+
+      await api.post(`/projects/${projetoId}/alterations`, formPayload, {
+         headers: { "Content-Type": "multipart/form-data" }
+      });
+      
       navigate(`/projetos/${projetoId}`, { state: { sucessoAlteracao: true } });
     } catch (error) {
       console.error("Erro ao salvar:", error);
@@ -162,7 +187,7 @@ export default function AlteraçõesComodos({ onLogout }) {
       nomeAlteracao: "",
       descricao: "",
       dataAlteracao: "",
-      disciplina: "Arquitetônica",
+      disciplina: "ARQUITETONICA",
       arquivo: null,
       descricaoFoto: "",
       funcionarioResponsavel: ""
@@ -363,7 +388,7 @@ export default function AlteraçõesComodos({ onLogout }) {
               >
                 <option value="">Selecione um funcionário</option>
                 {funcionarios.map(func => (
-                  <option key={func.id} value={func.nome}>
+                  <option key={func.id} value={func.id}>
                     {func.nome}
                   </option>
                 ))}

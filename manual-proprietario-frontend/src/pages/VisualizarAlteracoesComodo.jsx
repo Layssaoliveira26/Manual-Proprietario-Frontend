@@ -1,6 +1,6 @@
 // src/pages/VisualizarAlteracoesComodo.jsx
-import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
 import BarraLateral from '../components/BarraLateral';
 import MenuInicial from '../components/MenuInicial';
 import { LuEye } from 'react-icons/lu';
@@ -8,16 +8,21 @@ import { LuEye } from 'react-icons/lu';
 import api from '../services/api';
 
 const DISCIPLINAS_LABEL = {
-  "ARQUITETÔNICA": "Arquitetônica",
-  "ESTRTURAL": "Estrutural",
-  "HIDROSSANITÁRIA": "Hidrossanitária",
-  "ELÉTRICA": "Elétrica"
+  "ARQUITETONICA": "Arquitetônica",
+  "ESTRUTURAL": "Estrutural",
+  "HIDROSSANITARIA": "Hidrossanitária",
+  "ELETRICA": "Elétrica"
 };
 
 export default function VisualizarAlteracoesComodo({ onLogout }) {
   const location = useLocation();
+  const { id: idProjetoParam, idComodo: idComodoParam } = useParams();
+  
   const projeto = location.state?.projeto ?? null;
   const comodo = location.state?.comodo ?? null;
+
+  const projetoId = projeto?.id || idProjetoParam;
+  const comodoId = comodo?.idComodo || idComodoParam;
   
   const [alteracoes, setAlteracoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -25,7 +30,7 @@ export default function VisualizarAlteracoesComodo({ onLogout }) {
   const [indiceAtual, setIndiceAtual] = useState(0);
 
   useEffect(() => {
-    if (!projeto?.id || !comodo?.idComodo) {
+    if (!projetoId || !comodoId) {
       setErro("Projeto ou Cômodo não identificados.");
       setCarregando(false);
       return;
@@ -34,7 +39,7 @@ export default function VisualizarAlteracoesComodo({ onLogout }) {
     const buscarAlteracoes = async () => {
       try {
         setCarregando(true);
-        const res = await api.get(`/projects/${projeto.id}/alterations?idComodo=${comodo.idComodo}`);
+        const res = await api.get(`/projects/${projetoId}/alterations?idComodo=${comodoId}`);
         setAlteracoes(res.data.data.alteracoes || []);
         setErro(null);
       } catch (err) {
@@ -77,6 +82,25 @@ export default function VisualizarAlteracoesComodo({ onLogout }) {
       return alt.fotos[0].urlDaFoto;
     }
     return null;
+  };
+
+  const obterUrlAbsoluta = (caminho) => {
+    if (!caminho) return "";
+    if (caminho.startsWith('http')) return caminho;
+    
+    const normalized = caminho.replace(/\\/g, '/');
+    
+    const index = normalized.lastIndexOf('uploads/');
+    if (index !== -1) {
+      return `http://localhost:3000/uploads/${normalized.substring(index + 8)}`;
+    }
+    
+    if (normalized.includes('alteracoes/')) {
+       return `http://localhost:3000/uploads/${normalized}`;
+    }
+    
+    const filename = normalized.split('/').pop();
+    return `http://localhost:3000/uploads/alteracoes/fotos/${filename}`;
   };
 
   return (
@@ -178,7 +202,7 @@ export default function VisualizarAlteracoesComodo({ onLogout }) {
                       </span>
                       {obterFoto(alteracao) ? (
                         <a 
-                          href={obterFoto(alteracao).startsWith('http') ? obterFoto(alteracao) : `http://localhost:3000/uploads/${obterFoto(alteracao).split('/').pop()}`} 
+                          href={obterUrlAbsoluta(obterFoto(alteracao))} 
                           target="_blank" 
                           rel="noreferrer"
                         >

@@ -539,7 +539,7 @@ function ProjetoDetalhe({ onLogout }) {
                         Última alteração: {comodo.ultimaAlteracao}
                       </span> */}
                       <button
-                        onClick={() => navigate(`/manuais/:id/comodo/:idComodo/visualizaralteracoescomodo`, { state: { projeto, comodo } })}
+                        onClick={() => navigate(`/manuais/${id}/comodo/${comodo.idComodo}/visualizaralteracoescomodo`, { state: { projeto, comodo } })}
                         className=" text-white text-xl rounded px-4 py-1.5 cursor-pointer transition-colors whitespace-nowrap"
                       >
                         <IoEyeOutline color="#c0392b"/>
