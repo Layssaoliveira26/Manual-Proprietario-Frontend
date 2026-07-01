@@ -1,9 +1,10 @@
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const ValidateLoginFields = (email, password) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !password) {
         return "Campo ausente ou inválido";
     }
-    if(!emailRegex.test(email)) {
+    if(!EMAIL_REGEX.test(email)) {
         return "Email inválido ou sem formato padrão"
     }
 
@@ -175,4 +176,11 @@ export const ValidateAfterProjectStart = (dataAlteracao, dataInicioProjeto) => {
   }
   
   return null;
+};
+
+{/* Valida o formato do e-mail */}
+export const ValidateEmail = (email) => {
+    if (!email) return "O e-mail é obrigatório.";
+    if (!EMAIL_REGEX.test(email)) return "E-mail inválido ou sem formato padrão.";
+    return "";
 };

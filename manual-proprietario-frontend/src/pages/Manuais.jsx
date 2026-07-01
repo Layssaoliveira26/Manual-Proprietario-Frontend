@@ -1,5 +1,6 @@
 import BarraLateral from "../components/BarraLateral";
 import MenuInicial from "../components/MenuInicial";
+import { Paginacao } from "../components/Paginacao";
 import { MdOutlineEngineering } from "react-icons/md";
 import { IoEyeOutline } from "react-icons/io5";
 import { useEffect, useState } from "react";
@@ -45,7 +46,16 @@ function formatarData(dataString) {
 function Manuais({ onLogout }) {
 
 	const [projetos, setProjetos] = useState([]); 
+
 	const [searchTerm, setSearchTerm] = useState("");
+	const [paginaAtual, setPaginaAtual] = useState(1);
+	const itensPorPagina = 10;
+
+	const indiceInicio = (paginaAtual - 1) * itensPorPagina;
+	const indiceFim = indiceInicio + itensPorPagina;
+	const projetosPaginados = projetos.slice(indiceInicio, indiceFim);
+	const totalPaginas = Math.ceil(projetos.length / itensPorPagina);
+
 	const [carregando, setCarregando] = useState(true);
 	const navigate = useNavigate();
 	
@@ -68,6 +78,7 @@ function Manuais({ onLogout }) {
 
 				if (result.status === 'success' && result.data) {
 					setProjetos(result.data);
+					setPaginaAtual(1);
                 }
 
             } catch (err) {
@@ -120,7 +131,7 @@ function Manuais({ onLogout }) {
 										</td>
 									</tr>
 								) : projetos && projetos.length > 0 ? (
-									projetos.map((manual) => (
+									projetosPaginados.map((manual) => (
 										<tr key={manual.id}>
 											<td className="py-5 px-6">{manual.nomeProjeto}</td>
 											<td className="py-5 px-6">{manual.responsavel}</td>
@@ -152,6 +163,11 @@ function Manuais({ onLogout }) {
 							</tbody>
 						</table>
 					</div>
+					<Paginacao 
+                        paginaAtual={paginaAtual}
+                        totalPaginas={totalPaginas}
+                        onMudarPagina={setPaginaAtual}
+                    />
 				</main>
 			</div>
 		</div>

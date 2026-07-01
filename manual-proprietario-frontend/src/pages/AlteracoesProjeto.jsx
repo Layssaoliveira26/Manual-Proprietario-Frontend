@@ -4,6 +4,7 @@ import MenuInicial from "../components/MenuInicial"
 import { LuTrash2 } from "react-icons/lu";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
+import { ValidateRequired } from "../utils/validations";
 
 const TIPOS_CONSTRUCAO = [
   { value: "Apartamento", label: "Apartamento" },
@@ -84,6 +85,8 @@ export default function AlteracoesProjeto({ onLogout }) {
   const [formData, setFormData] = useState(defaultFormData);
   const [formDataOriginal, setFormDataOriginal] = useState(defaultFormData);
   const [carregando, setCarregando] = useState(true);
+
+  const [errors, setErrors] = useState({});
 
   const [funcionarios, setFuncionarios] = useState([{ id: 1, nome: "", cargo: "Mestre de Obra" }]);
   const [funcionariosOriginais, setFuncionariosOriginais] = useState([]);
@@ -171,6 +174,49 @@ export default function AlteracoesProjeto({ onLogout }) {
   const handleSalvar = async (e) => {
     e.preventDefault();
 
+    const newErrors = {};
+
+    const nomeErro = ValidateRequired(formData.nomeProjeto, "Nome do Projeto");
+    if (nomeErro) newErrors.nomeProjeto = nomeErro;
+
+    const descErro = ValidateRequired(formData.descricao, "Descrição");
+    if (descErro) newErrors.descricao = descErro;
+
+    const ruaErro = ValidateRequired(formData.rua, "Rua");
+    if (ruaErro) newErrors.rua = ruaErro;
+
+    const bairroErro = ValidateRequired(formData.bairro, "Bairro");
+    if (bairroErro) newErrors.bairro = bairroErro;
+
+    const numErro = ValidateRequired(formData.numero, "Número");
+    if (numErro) newErrors.numero = numErro;
+
+    const tipoErro = ValidateRequired(formData.tipoConstrucao, "Tipo de Construção");
+    if (tipoErro) newErrors.tipoConstrucao = tipoErro;
+
+    const dataErro = ValidateRequired(formData.dataInicio, "Data de Início");
+    if (dataErro) newErrors.dataInicio = dataErro;
+
+    const numeroARTErro = ValidateRequired(formData.numeroART, "Número do ART");
+    if (numeroARTErro) newErrors.numeroART = numeroARTErro;
+
+    const funcionariosErros = {};
+    funcionarios.forEach(func => {
+      const funcNomeErro = ValidateRequired(func.nome, "Nome do Funcionário");
+      if (funcNomeErro) funcionariosErros[func.id] = funcNomeErro;
+    });
+
+    if (Object.keys(funcionariosErros).length > 0) {
+      newErrors.funcionarios = funcionariosErros;
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    setErrors({}); 
+
     const payloadProjeto = {
       descricao: formData.descricao,
       rua: formData.rua,
@@ -210,8 +256,7 @@ export default function AlteracoesProjeto({ onLogout }) {
 
       await Promise.all([...promisesDelete, ...promisesUpsert]);
 
-      alert("Informações do projeto e funcionários atualizados com sucesso!");
-      navigate(`/projetos/${id}`);
+      navigate(`/projetos/${id}`, { state: { sucessoAlteracao: true } });
     } catch (error) {
       console.error("Erro ao salvar alterações:", error);
       const erros = Array.isArray(error.response?.data?.errors)
@@ -251,6 +296,7 @@ export default function AlteracoesProjeto({ onLogout }) {
         <BarraLateral onLogout={onLogout} />
         <main className="w-full overflow-y-auto px-8 py-6 bg-gray-100">
           <form onSubmit={handleSalvar} className="space-y-8">
+
             {/* Informações do Projeto */}
             <section className="bg-white p-6 rounded-lg shadow-sm space-y-4">
               <div>
@@ -267,20 +313,26 @@ export default function AlteracoesProjeto({ onLogout }) {
                   name="nomeProjeto"
                   value={formData.nomeProjeto}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                  className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 ${errors.nomeProjeto ? 'border-red-500' : 'border-gray-300'}`}
                 />
+                {errors.nomeProjeto && (
+                  <span className="text-red-500 text-xs mt-1 block">{errors.nomeProjeto}</span>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-red-600 mb-2">
-                  Descrição
+                  Descrição*
                 </label>
                 <textarea
                   name="descricao"
                   value={formData.descricao}
                   onChange={handleInputChange}
                   rows="3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                  className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 ${errors.descricao ? 'border-red-500' : 'border-gray-300'}`}
                 />
+                {errors.descricao && (
+                  <span className="text-red-500 text-xs mt-1 block">{errors.descricao}</span>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-6">
                 <div>
@@ -292,8 +344,11 @@ export default function AlteracoesProjeto({ onLogout }) {
                     name="rua"
                     value={formData.rua}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 ${errors.rua ? 'border-red-500' : 'border-gray-300'}`}
                   />
+                  {errors.rua && (
+                    <span className="text-red-500 text-xs mt-1 block">{errors.rua}</span>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-red-600 mb-2">
@@ -304,8 +359,11 @@ export default function AlteracoesProjeto({ onLogout }) {
                     name="bairro"
                     value={formData.bairro}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 ${errors.bairro ? 'border-red-500' : 'border-gray-300'}`}
                   />
+                  {errors.bairro && (
+                    <span className="text-red-500 text-xs mt-1 block">{errors.bairro}</span>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-6">
@@ -318,8 +376,11 @@ export default function AlteracoesProjeto({ onLogout }) {
                     name="numero"
                     value={formData.numero}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 ${errors.numero ? 'border-red-500' : 'border-gray-300'}`}
                   />
+                  {errors.numero && (
+                    <span className="text-red-500 text-xs mt-1 block">{errors.numero}</span>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-red-600 mb-2">
@@ -341,7 +402,7 @@ export default function AlteracoesProjeto({ onLogout }) {
                     name="tipoConstrucao"
                     value={formData.tipoConstrucao}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 bg-white"
+                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 bg-white ${errors.tipoConstrucao ? 'border-red-500' : 'border-gray-300'}`}
                   >
                     {TIPOS_CONSTRUCAO.map(tipo => (
                       <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
@@ -360,8 +421,11 @@ export default function AlteracoesProjeto({ onLogout }) {
                     name="dataInicio"
                     value={formData.dataInicio}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 ${errors.dataInicio ? 'border-red-500' : 'border-gray-300'}`}
                   />
+                  {errors.dataInicio && (
+                    <span className="text-red-500 text-xs mt-1 block">{errors.dataInicio}</span>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-red-600 mb-2">
@@ -374,18 +438,24 @@ export default function AlteracoesProjeto({ onLogout }) {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
                   />
+                  {errors.dataConclussaoEstimada && (
+                    <span className="text-red-500 text-xs mt-1 block">{errors.dataConclussaoEstimada}</span>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-red-600 mb-2">
-                    Número do ART
+                    Número do ART*
                   </label>
                   <input
                     type="text"
                     name="numeroART"
                     value={formData.numeroART}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 ${errors.numeroART ? 'border-red-500' : 'border-gray-300'}`}
                   />
+                  {errors.numeroART && (
+                    <span className="text-red-500 text-xs mt-1 block">{errors.numeroART}</span>
+                  )}
                 </div>
               </div>
             </section>
@@ -404,7 +474,7 @@ export default function AlteracoesProjeto({ onLogout }) {
                         value={funcionario.nome}
                         onChange={(e) => handleFuncionarioChange(funcionario.id, 'nome', e.target.value)}
                         placeholder="Nome do profissional"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                        className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500 ${errors.funcionarios?.[funcionario.id]?.nome ? 'border-red-500' : 'border-gray-300'}`}
                       />
                     </div>
                     <div className="flex-1">

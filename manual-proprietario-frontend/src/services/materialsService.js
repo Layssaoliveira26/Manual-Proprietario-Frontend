@@ -38,8 +38,22 @@ export function normalizarMaterial(raw) {
         .map((c) => c.nomeComodo ?? c.nome ?? '')
         .filter(Boolean);
 
+    const mapaAreas = {
+        'PINTURAS': 'Pinturas',
+        'LUMINARIAS': 'Luminárias',
+        'REVESTIMENTOS': 'Revestimentos',
+        'LOUCAS_E_METAIS': 'Louças e metais'
+    };
+
+    let areaFormatada = raw.area ?? '—';
+    if (raw.area) {
+        const areaUpper = raw.area.toUpperCase();
+        areaFormatada = mapaAreas[areaUpper] || 
+            (raw.area.charAt(0).toUpperCase() + raw.area.toLowerCase().slice(1).replace(/_/g, ' '));
+    }
+
     return {
-        id:               raw.id,
+        idMaterial:               raw.idMaterial,
         nomeMaterial:     raw.nomeMaterial  ?? raw.nome          ?? '—',
         marca:            raw.marca         ?? '—',
         referencia:       raw.referencia    ?? '—',
@@ -48,7 +62,7 @@ export function normalizarMaterial(raw) {
         tipo:             raw.tipo          ?? '',
         cor:              raw.cor           ?? '',
         descricao:        raw.descricao     ?? '',
-        area:             raw.area          ?? '—',
+        area:             areaFormatada,
         // Array original de cômodos (mantido para EditarMaterial pré-selecionar)
         comodosArray:     comodos,
         // String formatada para exibição na tabela ("Cozinha, Sala de estar")
@@ -69,8 +83,29 @@ export function normalizarMaterial(raw) {
  * descrevendo onde o material foi alocado — já agrupado.
  *
  * @param {string} projectId
+ * @param {object} data - { nomeMaterial, area, referencia?, lote?, marca?, tamanho?, tipoMaterial?, cor?, descricaoMaterial?, comodos[] }
  * @returns {Promise<object[]>} — array de materiais normalizados
  */
+
+export async function criarMaterial(projectId, data) {
+    const response = await api.post(`/projects/${projectId}/materials`, {
+        nomeMaterial: data.nomeMaterial,
+        area: data.area,
+        referencia: data.referencia || null,
+        lote: data.lote || null,
+        marca: data.marca || null,
+        tamanho: data.tamanho || null,
+        tipoMaterial: data.tipoMaterial || null,
+        cor: data.cor || null,
+        descricaoMaterial: data.descricaoMaterial || null,
+        comodos: data.comodos, // array com { idComodo, idAndar }
+    });
+    
+    const raw = response.data?.data;
+    if (!raw) throw new Error('Erro ao criar material');
+    return normalizarMaterial(raw);
+}
+
 export async function listarMateriaisPorProjeto(projectId) {
     const response = await api.get(`/projects/${projectId}/materials`);
 
@@ -81,7 +116,8 @@ export async function listarMateriaisPorProjeto(projectId) {
         : Array.isArray(payload?.materiais)
             ? payload.materiais
             : [];
-
+    
+    console.log('Materiais brutos da API:', raw);
     if (raw.length === 0 && payload !== undefined && !Array.isArray(payload) && !payload?.materiais) {
         console.warn('[materialsService] Formato inesperado em GET /projects/:id/materials:', response.data);
     }
@@ -101,5 +137,21 @@ export async function buscarMaterialPorId(projectId, materialId) {
     const response = await api.get(`/projects/${projectId}/materials/${materialId}`);
     const raw = response.data?.data;
     if (!raw) throw new Error('Material não encontrado');
+    return normalizarMaterial(raw);
+}
+
+export async function atualizarMaterial(projectId, materialId, data) {
+
+    const payloadComProjeto = {
+        ...data,
+        comodos: data.comodos.map(c => ({
+            ...c,
+            idProjeto: projectId 
+        }))
+    };
+
+    const response = await api.patch(`/materials/${materialId}`, payloadComProjeto);
+    const raw = response.data?.data;
+    if (!raw) throw new Error('Erro ao atualizar material');
     return normalizarMaterial(raw);
 }

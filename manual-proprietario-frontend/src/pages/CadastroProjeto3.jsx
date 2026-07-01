@@ -103,8 +103,7 @@ function CadastroProjeto3() {
                 });
             }));
 
-            alert("Projeto cadastrado com sucesso!");
-            navigate("/projetos");
+            navigate("/projetos", { state: { sucessoCriacao: true } });
         } catch (error) {
             console.error("Erro ao finalizar cadastro:", error);
             alert(error.response?.data?.message || "Erro ao cadastrar projeto.");

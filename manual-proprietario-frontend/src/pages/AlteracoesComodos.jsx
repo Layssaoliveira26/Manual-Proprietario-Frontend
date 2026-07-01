@@ -147,9 +147,8 @@ export default function AlteraçõesComodos({ onLogout }) {
               file: formData.arquivo
           });
       }
-      alert("Alteração feita com sucesso!");
-      navigate(-1);
       console.log("Salvando alteração:", formData, todosArquivosParaSalvar);
+      navigate(`/projetos/${projetoId}`, { state: { sucessoAlteracao: true } });
     } catch (error) {
       console.error("Erro ao salvar:", error);
     } finally {

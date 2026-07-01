@@ -293,7 +293,6 @@ function MinhaConta({ onLogout }) {
                                 <div className="flex flex-col gap-1">
                                     <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                                         CPF
-                                        <span className="text-xs font-normal text-gray-400">(não editável)</span>
                                     </label>
                                     <input
                                         value={perfil?.cpf ?? ''}
