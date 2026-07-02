@@ -200,7 +200,7 @@ export default function AlteraçõesComodos({ onLogout }) {
 
   return (
     <div className="h-svh flex flex-col overflow-hidden">
-      <MenuInicial />
+      <MenuInicial hideSearch={true} />
       <div className="flex flex-1 overflow-hidden">
         <BarraLateral onLogout={onLogout} />
         <main className="w-full overflow-y-auto px-8 py-6 bg-gray-100">

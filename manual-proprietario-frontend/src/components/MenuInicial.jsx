@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-function MenuInicial({ onSearchChange }) {
+function MenuInicial({ onSearchChange, hideSearch = false }) {
     const localizacao = useLocation();
     const ocultarNasRotasDeCadastro = [
         "/cadastro-projeto",
         "/cadastro-projeto2",
         "/cadastro-projeto3",
     ].includes(localizacao.pathname);
-    const mostrarComponente = !ocultarNasRotasDeCadastro;
+    const mostrarComponente = !ocultarNasRotasDeCadastro && !hideSearch;
 
     const [searchTerm, setSearchTerm] = useState("");
 
