@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import cadastrarConstrutor from "../services/cadConstrutor";
 import {ValidateFullName, ValidateLoginFields, ValidateCPF, ValidateCREA, ValidateStrongPassword, ValidatePasswordMatch } from "../utils/validations";
 import { maskCPF } from "../utils/masks";
+import { ModalSucesso } from "../components/ModalSucesso";
 
 function CadastroConstrutor() {
     const [ nome, setNome ] = useState("");
@@ -15,6 +16,7 @@ function CadastroConstrutor() {
     const [ confirmSenha, setConfirmSenha ] = useState("");
     const [ errorMessage, setErrorMessage] = useState("");
     const [errorField, setErrorField] = useState("");
+    const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
     const navigate = useNavigate();
 
     const cadastrarConst = async () => {
@@ -51,8 +53,7 @@ function CadastroConstrutor() {
             };
 
             await cadastrarConstrutor(payload);
-            alert("Construtor cadastrado com sucesso!");
-            navigate("/login");
+            setModalSucessoAberto(true);
         } catch(error) {
             // Unindo os mundos: Pega a mensagem real do erro do back e joga no box de erro da tela
             const backErrors = error.response?.data?.errors;
@@ -112,6 +113,14 @@ function CadastroConstrutor() {
                     <img src={detalhe} alt="" />
                 </div>
             </div>
+            <ModalSucesso
+                isAberto={modalSucessoAberto}
+                mensagem="Construtor cadastrado com sucesso!"
+                onFechar={() => {
+                    setModalSucessoAberto(false);
+                    navigate("/login");
+                }}
+            />
         </div>
     );
 }

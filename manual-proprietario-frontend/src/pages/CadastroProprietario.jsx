@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import cadastrarProprietario from "../services/cadProprietario";
 import { ValidateFullName, ValidateLoginFields, ValidateCPF, ValidateStrongPassword, ValidatePasswordMatch} from "../utils/validations";
 import { maskCPF } from "../utils/masks";
+import { ModalSucesso } from "../components/ModalSucesso";
 
 function CadastroProprietario() {
     const [nome, setNome] = useState("");
@@ -14,6 +15,7 @@ function CadastroProprietario() {
     const [confirmSenha, setConfirmSenha] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [errorField, setErrorField] = useState("");
+    const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
     const navigate = useNavigate();
     
     const cadastrarProp = async () => {
@@ -47,8 +49,7 @@ function CadastroProprietario() {
             };
 
             await cadastrarProprietario(payload);
-            alert("Cadastro realizado com sucesso!");
-            navigate("/login");
+            setModalSucessoAberto(true);
         } catch(error) {
             const backErrors = error.response?.data?.errors;
 
@@ -108,6 +109,14 @@ function CadastroProprietario() {
                     <img src={detalhe} alt="" />
                 </div>
             </div>
+            <ModalSucesso
+                isAberto={modalSucessoAberto}
+                mensagem="Cadastro realizado com sucesso!"
+                onFechar={() => {
+                    setModalSucessoAberto(false);
+                    navigate("/login");
+                }}
+            />
         </div>
     );
 }
