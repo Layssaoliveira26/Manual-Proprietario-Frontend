@@ -145,7 +145,7 @@ function EditarMaterial({ onLogout }) {
     if (carregando) {
         return (
             <div className="h-svh flex flex-col overflow-hidden">
-                <MenuInicial />
+                <MenuInicial hideSearch={true} />
                 <div className="flex flex-1 overflow-hidden">
                     <BarraLateral onLogout={onLogout} />
                     <main className="w-full flex items-center justify-center">
@@ -158,7 +158,7 @@ function EditarMaterial({ onLogout }) {
 
     return (
         <div className="h-svh flex flex-col overflow-hidden">
-            <MenuInicial />
+            <MenuInicial hideSearch={true} />
             <div className="flex flex-1 overflow-hidden">
                 <BarraLateral onLogout={onLogout} />
                 <main className="w-full overflow-y-auto px-10 py-8">
